@@ -870,9 +870,14 @@ void Flow::processDetectedProtocol(u_int8_t* payload, u_int16_t payload_len) {
   iface->incnDPIFlows(stats_protocol);
 
   /* Domain Concats Alert */
-  if (ndpiFlow)
-    domain_name = ndpi_get_flow_name(&ndpiFlow->core),
-    confidence = ndpiFlow->core.confidence;
+  if (ndpiFlow) {
+    domain_name = ndpi_get_flow_name(&ndpiFlow->core);
+
+    /* Collected flows: the confidence exported with the flow, set before (see
+     * ParserInterface::processFlow), not the one of nDPI, that has seen no
+     * packet */
+    if (iface->isPacketInterface()) confidence = ndpiFlow->core.confidence;
+  }
 
   if (cli_h && domain_name && domain_name[0] != '\0')
     cli_h->addContactedDomainName(domain_name);
@@ -6012,9 +6017,18 @@ void Flow::updateServerPortsStats(Host* server, ndpi_protocol* proto,
   */
   bool is_tcp = (protocol == IPPROTO_TCP);
   u_int16_t port = ntohs(srv_port);
+  ndpi_protocol unknown;
 
   if ((!server) || (!server->isLocalHost()) || (!isServerPortAnswered()))
     return;
+
+  /* A protocol only guessed (by port or by IP) does not tell what the port
+   * is: Unknown, e.g. not HTTP_Proxy for any port 8080 (see
+   * UsedPorts::setServerPort, a known protocol is not replaced) */
+  if (isGuessedProtocolFlow()) {
+    memset(&unknown, 0, sizeof(unknown));
+    proto = &unknown;
+  }
 
   if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
                       interface */
@@ -6037,10 +6051,17 @@ void Flow::updateClientContactedPorts(Host* client, ndpi_protocol* proto) {
     NOTE use the method parameter 'client' instead of
     cli_host as with view interfaces it can be invalid
   */
+  ndpi_protocol unknown;
 
-  if (client->isLocalHost() && isServerPortAnswered())
-    client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port),
-                             proto);
+  if ((!client->isLocalHost()) || (!isServerPortAnswered())) return;
+
+  /* A protocol only guessed: Unknown (see updateServerPortsStats) */
+  if (isGuessedProtocolFlow()) {
+    memset(&unknown, 0, sizeof(unknown));
+    proto = &unknown;
+  }
+
+  client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port), proto);
 }
 /* *************************************** */
 

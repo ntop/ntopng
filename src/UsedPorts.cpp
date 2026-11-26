@@ -159,6 +159,28 @@ void UsedPorts::lua(lua_State* vm, NetworkInterface* iface) {
 
 /* *************************************** */
 
+/* Set the protocol of a port of a map: the protocol of the latest flow of the
+ * port, but a protocol not known (e.g. a flow whose protocol has only been
+ * guessed, see Flow::updateServerPortsStats) never replaces a known one.
+ * Return true when the port is new */
+static bool setPortProtocol(std::unordered_map<u_int16_t, ndpi_protocol>* ports,
+                            u_int16_t port, ndpi_protocol* proto) {
+  std::unordered_map<u_int16_t, ndpi_protocol>::iterator it = ports->find(port);
+
+  if (it == ports->end()) {
+    (*ports)[port] = *proto;
+    return (true);
+  }
+
+  if ((proto->proto.master_protocol != NDPI_PROTOCOL_UNKNOWN) ||
+      (proto->proto.app_protocol != NDPI_PROTOCOL_UNKNOWN))
+    it->second = *proto;
+
+  return (false);
+}
+
+/* *************************************** */
+
 /*Return false if not new server port are detected after the learning period,
  * true otherwise */
 bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
@@ -172,13 +194,11 @@ bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
         (proto->proto.app_protocol == NDPI_PROTOCOL_FTP_DATA))
       ;
     else {
-      if (tcp_server_ports.count(port) == 0) set_new_port = true;
-      tcp_server_ports[port] = *proto;
+      set_new_port = setPortProtocol(&tcp_server_ports, port, proto);
       if (bitmap_server_ports) bitmap_server_ports->addPort(true, port);
     }
   } else {
-    if (udp_server_ports.count(port) == 0) set_new_port = true;
-    udp_server_ports[port] = *proto;
+    set_new_port = setPortProtocol(&udp_server_ports, port, proto);
     if (bitmap_server_ports) bitmap_server_ports->addPort(false, port);
   }
 
@@ -189,10 +209,8 @@ bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
 
 void UsedPorts::setContactedPort(bool isTCP, u_int16_t port,
                                  ndpi_protocol* proto) {
-  if (isTCP)
-    tcp_client_contacted_ports[port] = *proto;
-  else
-    udp_client_contacted_ports[port] = *proto;
+  setPortProtocol(isTCP ? &tcp_client_contacted_ports : &udp_client_contacted_ports, port,
+                  proto);
 }
 
 /* *************************************** */

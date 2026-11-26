@@ -270,6 +270,10 @@ Related
   flows whose direction is reliable (`Flow::isDirectionReliable()`: decided,
   not reversed with the flow swap heuristic disabled, no swap pending on
   nEdge) and whose server has answered (TCP: SYN-ACK; UDP: any traffic).
+  The protocol of a port is the one of its latest flow, but a protocol only
+  guessed (`Flow::isGuessedProtocolFlow()`: by port or by IP, e.g. a
+  handshake only on port 8080) is reported as Unknown, and Unknown never
+  replaces a known protocol (`UsedPorts`).
   Known limitations:
   * UDP flows detected by DPI are decided also when the default ports of the
     protocol tell nothing (`Flow::getDirectionByProtocol()`): their client is
@@ -301,7 +305,7 @@ without a view interface (`*_view_*`):
 * `peers_swap_heuristic_01`-`03`: SSH and TLS flows without the handshake.
 * `server_ports_01`: the server and contacted ports learned (connection
   closed by a RST, SYN-ACK lost, unknown UDP protocol, one way syslog, NTP and
-  DNS between equal ports); the tests above also dump the ports learned by
+  DNS between equal ports, protocol guessed by the port); the tests above also dump the ports learned by
   their hosts;
 * `server_ports_swap_off_01`, `alert_unexpected_dhcp_server_swap_off_01`: the
   flow swap heuristic disabled (option `prefs` of the test): ports learned only
