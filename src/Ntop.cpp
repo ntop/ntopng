@@ -6012,6 +6012,10 @@ void Ntop::initPing() {
       case interface_type_PF_RING:
       case interface_type_PCAP: {
         char* name = iface[i]->get_name();
+
+        /* Already created by the loop on the devices above: overwriting it leaked it */
+        if (ping.find(std::string(name)) != ping.end()) break;
+
         Ping* p = new (std::nothrow) Ping(name);
 
         if (p) {
