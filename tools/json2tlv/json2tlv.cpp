@@ -257,7 +257,9 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (zmq_endpoint[strlen(zmq_endpoint) - 1] == 'c') {
-      /* Collector mode */
+      /* Collector mode: the trailing 'c' is not part of the ZMQ endpoint */
+      zmq_endpoint[strlen(zmq_endpoint) - 1] = '\0';
+
       if (zmq_bind(zmq_sock, zmq_endpoint) != 0) {
         printf("Unable to bind to ZMQ socket %s: %s\n", zmq_endpoint, strerror(errno));
         exit(1);

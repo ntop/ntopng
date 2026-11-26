@@ -4697,6 +4697,7 @@ local lang = {
     ["peer_as_src_dst"] = "PEER ASN [ Client / Server ]",
     ["policy_violation"] = "Policy Violation",
     ["potentially_dangerous_protocol"] = "Potentially Dangerous Protocol",
+    ["process_cmdline"] = "Command Line",
     ["process_information_report_warning"] = "Process information report is limited unless you use ntopng with <A HREF='%{url}'>nProbe</A> and the sprobe script",
     ["process_package"] = "Package Name",
     ["process_pid"] = "PID",
