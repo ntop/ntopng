@@ -158,7 +158,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   QoEStats qoe_stats;
 #endif
 
-  UsedPorts usedPorts;
   struct {
     u_int64_t peering_bytes, transit_bytes, ix_bytes, other_bytes;
   } roleStats; /* AS mode only */
@@ -1497,11 +1496,6 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
     customHostLuaScript = vm;
   }
   inline LuaEngine* getCustomHostLuaScript() { return (customHostLuaScript); }
-
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto) {
-    usedPorts.setServerPort(isTCP, port, proto);
-  };
-  void luaUsedPorts(lua_State* vm) { usedPorts.lua(vm, this); };
 
   void getHostsPorts(lua_State* vm);
   void getHostsByPort(lua_State* vm);

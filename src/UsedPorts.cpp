@@ -31,15 +31,6 @@ UsedPorts::UsedPorts(Host* _h) {
 
 /* *************************************** */
 
-UsedPorts::UsedPorts() {
-  if (trace_new_delete)
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  h = NULL, bitmap_server_ports = NULL;
-  ;
-}
-
-/* *************************************** */
-
 void UsedPorts::restore() {
   if (h && (bitmap_server_ports == NULL)) {
     char redis_key[128];

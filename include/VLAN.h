@@ -29,7 +29,6 @@ class VLAN : public GenericHashEntry,
              public Score {
  private:
   u_int16_t vlan_id;
-  UsedPorts usedPorts;
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
     if (first_seen == 0) first_seen = t;
@@ -68,10 +67,6 @@ class VLAN : public GenericHashEntry,
     snprintf(buf, bufsize, VLAN_SERIALIZED_KEY, (u_int)iface->get_id(), vlan_id);
     return (buf);
   }
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol* proto) {
-    usedPorts.setServerPort(isTCP, port, proto);
-  };
-  void luaUsedPorts(lua_State* vm) { usedPorts.lua(vm, iface); };
 };
 
 #endif /* _VLAN_H_ */

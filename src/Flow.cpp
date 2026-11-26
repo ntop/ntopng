@@ -6031,15 +6031,6 @@ void Flow::updateServerPortsStats(Host* server, ndpi_protocol* proto,
     proto = &unknown;
   }
 
-  if (vlanId == 0) /* In case the VLAN is 0 set this port to the network
-                      interface */
-    iface->setServerPort(is_tcp, port, proto);
-  else { /* Otherwise set this port to the right VLAN */
-    VLAN* vlan_hash = iface->getVLAN(vlanId, false, false);
-
-    if (vlan_hash) vlan_hash->setServerPort(is_tcp, port, proto);
-  }
-
   server->setServerPort(is_tcp, port, proto, first_seen, this);
 }
 

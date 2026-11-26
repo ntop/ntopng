@@ -67,8 +67,6 @@ void VLAN::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
 
-  usedPorts.lua(vm, iface);
-
   if (asListElement) {
     lua_pushinteger(vm, vlan_id);
     lua_insert(vm, -2);
