@@ -12683,7 +12683,7 @@ local lang = {
     },
     ["report"] = {
       ["title"] = "Traffic Model Daily Report",
-      ["description"] = "Servers of %{ifname} on %{day}. New: detected but not in the configuration. Inactive: in the configuration but not detected. Active: in the configuration and detected. Active + Inactive = Configured. Configured + New = Total:",
+      ["description"] = "Servers of %{ifname} on %{day}. New + Active + Inactive = Total. New servers are those detected on the day and not in your configuration; inactive servers are configured but not seen on that day:",
       ["col_type"] = "Server Type",
       ["col_configured_seen"] = "Active",
       ["col_configured_not_seen"] = "Inactive",
@@ -12731,7 +12731,7 @@ local lang = {
       ["remove_all"] = "Remove All (%{count})",
       ["remove_all_confirm_btn"] = "Remove All",
       ["confirm_remove_all"] = "Servers to remove from the configuration: %{count}. Continue?",
-      ["by_type_help"] = "New + Active + Inactive = Total. New servers are those detected on the chosen day and not in your configuration; inactive servers had no traffic in the last %{days} days.",
+      ["by_type_help"] = "New + Active + Inactive = Total. New servers are those detected on the chosen day and not in your configuration; inactive servers are configured but not seen on that day.",
       ["added"] = "Servers added to the configuration: %{count}",
       ["removed"] = "Servers removed from the configuration: %{count}",
       ["add_failed"] = "Unable to add the servers to the configuration",
