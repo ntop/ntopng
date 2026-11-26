@@ -25,7 +25,8 @@ Here some example of rules:
 Whenever a condition is met, ntopng is going to trigger an alert. The alerts of all the rules are
 switched on and off by the *Traffic Rules* interface check in the :ref:`Behavioural Checks
 <BehaviouralChecks>` page, which also sets their tags: when the check is disabled the rules are
-still measured, but no alert is triggered.
+still measured, but no alert is triggered. The severity of the alerts is set by each rule (see
+*Severity* below).
 
 .. note::
   To page is accessible from the Settings -> Traffic Rules
@@ -69,7 +70,8 @@ At this point, fill the fields with the correct informations:
   - Metric: select the metric to be analyzed (e.g. Traffic (RX + TX), Score or an application such as DNS -> the DNS traffic);
   - Measured as: select how the metric is measured: Average bandwidth (bits per second, averaged over the period), Total traffic (bytes exchanged during the period) or Change (increase or decrease compared to the previous period);
   - Alert when the value is: choose Above or Below, then type the threshold value and choose its unit (e.g. Kbps, Mbps or Gbps), that, if exceeded, is going to trigger an alert;
-  - Check every: choose the frequency of the analysis: 5 minutes, Hour, Day or Month.
+  - Check every: choose the frequency of the analysis: 5 minutes, Hour, Day or Month;
+  - Severity: the severity of the alerts triggered by the rule (Info, Notice, Warning, Error, Critical or Emergency, default Error). The rules created before this option was available keep triggering Error alerts. The severity is shown in the Severity column of the rules table, in the alerts and is used by the notification policies (e.g. a minimum severity).
 
 A Summary box at the bottom of the form describes the rule in plain words before it is added.
 
@@ -121,4 +123,7 @@ To do so, use the button of the rule that needs changes: the button itself opens
   Traffic rules are evaluated according to the rule frequency specified. For instance Daily rules are evaluated every midnight considering the traffic of the previous day.
 
 
-Click *Simulate Notifications* in the rule dialog to see who is notified when the rule triggers an alert (see :ref:`NotificationSimulation`).
+Click *Simulate Notifications* in the rule dialog to see who is notified when the rule triggers an alert, with the severity selected in the dialog (see :ref:`NotificationSimulation`).
+
+.. note::
+  A host can have only one Traffic Rule alert engaged at a time: when several rules on the same host are exceeded, the alert keeps the severity of the rule that triggered it first, until it is released.

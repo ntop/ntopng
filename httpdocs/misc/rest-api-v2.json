@@ -380,6 +380,223 @@
         }
       }
     },
+    "/lua/pro/rest/v2/add/interface/traffic_rules/rule.lua": {
+      "post": {
+        "tags": [
+          "Traffic Rules"
+        ],
+        "summary": "Add or edit a traffic rule",
+        "description": "Adds a traffic rule (an alert when a timeseries goes above or below a threshold), or edits the one with row_id. Answers the saved rule. Enterprise M and administrators only.",
+        "operationId": "add_interface_traffic_rule",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "rule_type",
+            "in": "formData",
+            "description": "Type of the monitored element",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "interface",
+              "Host",
+              "host_pool",
+              "CIDR",
+              "vlan",
+              "profiles",
+              "asn",
+              "exporter"
+            ]
+          },
+          {
+            "name": "rule_target",
+            "in": "formData",
+            "description": "Monitored element: interface id, host IP (optionally @VLAN, * = all the local hosts), host pool id, network, VLAN id, traffic profile, ASN or flow exporter IP (* = all the exporters)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "target_label",
+            "in": "formData",
+            "description": "Label of the target (host pool, VLAN)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "metric",
+            "in": "formData",
+            "description": "Timeseries schema measured (e.g. iface:traffic, host:traffic-RX)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "extra_metric",
+            "in": "formData",
+            "description": "Application or category of the per application/category metrics (e.g. protocol:HTTP, category:Web)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "metric_label",
+            "in": "formData",
+            "description": "Label of the metric shown in the rules list",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "metric_type",
+            "in": "formData",
+            "description": "How the metric is measured",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "volume",
+              "throughput",
+              "percentage",
+              "value",
+              "absolute_percentage",
+              "score"
+            ]
+          },
+          {
+            "name": "threshold",
+            "in": "formData",
+            "description": "Threshold (>= 0): bytes (volume), bits per second (throughput), percent or plain value",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "name": "threshold_sign",
+            "in": "formData",
+            "description": "1: alert when above the threshold, -1: when below",
+            "required": true,
+            "type": "integer",
+            "enum": [
+              1,
+              -1
+            ]
+          },
+          {
+            "name": "frequency",
+            "in": "formData",
+            "description": "How often the rule is checked (the period just ended is measured)",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "5min",
+              "hour",
+              "day",
+              "month"
+            ]
+          },
+          {
+            "name": "severity_id",
+            "in": "formData",
+            "description": "Severity of the alerts raised by the rule (the ones selectable in the Behavioural Checks): 2 = Info, 3 = Notice, 4 = Warning, 5 = Error, 6 = Critical, 8 = Emergency",
+            "required": false,
+            "type": "integer",
+            "enum": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              8
+            ],
+            "default": 5
+          },
+          {
+            "name": "row_id",
+            "in": "formData",
+            "description": "Id of the rule to edit (empty: a new rule is added)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "network_id",
+            "in": "formData",
+            "description": "Network id (CIDR rules)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "port",
+            "in": "formData",
+            "description": "Flow exporter interface index, * = all the interfaces (exporter rules)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "device_ifid",
+            "in": "formData",
+            "description": "Interface where the flow exporter is seen (exporter rules)",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. The saved rule (with its row_id)"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS. The 'error' field says why: invalid_rule_type, invalid_target, invalid_metric, invalid_frequency, invalid_metric_type, invalid_threshold, invalid_severity, duplicate_rule"
+          },
+          "-1": {
+            "description": "NOT_FOUND (row_id of a rule that does not exist)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/interface/traffic_rules/data.lua": {
+      "get": {
+        "tags": [
+          "Traffic Rules"
+        ],
+        "summary": "Get the traffic rules",
+        "description": "Traffic rules of an interface. Each rule: row_id, rule_type, target, metric, extra_metric, metric_label, metric_type, threshold, threshold_sign, frequency, severity_id (missing = 5, Error), the per type fields (selected_iface, host_pool_label, vlan_label, network_id, name, flow_exp_ifid, ifid) and last_measurement (the last measured value, missing for the rules on all the hosts or exporters). Enterprise M and administrators only.",
+        "operationId": "get_interface_traffic_rules",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK. Array of rules"
+          },
+          "-3": {
+            "description": "NOT_GRANTED (administrators only)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/add/syslog/rule.lua": {
       "post": {
         "tags": [

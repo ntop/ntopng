@@ -2535,6 +2535,7 @@ local known_parameters = {
    ["showGraph"] = validateBool,
    ["range"] = validateUnquoted,
    ["threshold_sign"] = validateNumber,
+   ["severity_id"] = validateNumber, -- An alert severity id (traffic rules)
 
    -- CLASSIFICAION
    ["classification_user_id"] = validateUnquoted,

@@ -28,11 +28,13 @@ TrafficVolumeAlert::TrafficVolumeAlert(HostCheckID check_id, Host* h,
                                        std::string _metric,
                                        u_int32_t _frequency_sec,
                                        std::string _threshold,
-                                       std::string _value, bool t_sign)
+                                       std::string _value, bool t_sign,
+                                       u_int8_t _score)
     : HostAlert(check_id, _metric, h, cli_pctg) {
   metric = _metric, frequency_sec = _frequency_sec, threshold = _threshold,
   value = _value;
   sign = t_sign;
+  score = _score;
 };
 
 /* ***************************************************** */

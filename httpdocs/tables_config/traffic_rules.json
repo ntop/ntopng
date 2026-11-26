@@ -71,6 +71,15 @@
 			]
 		},
 		{
+			"id": "severity",
+			"title_i18n": "traffic_rules.severity",
+			"data_field": "severity_id",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "frequency",
 			"title_i18n": "traffic_rules.checked",
 			"data_field": "frequency",

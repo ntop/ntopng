@@ -54,8 +54,8 @@ local POOL_ENTITIES = {
 
 -- Alert raised by a traffic rule, per rule type (keep in sync with traffic_rules_utils.build_alert,
 -- host_alert and check_exporter_port). Their alerts are switched on/off by the interface check
--- TRAFFIC_RULES_CHECK, which gives them its severity, category and tags (not to the host alerts,
--- raised by the C++ core).
+-- TRAFFIC_RULES_CHECK, which gives them its category and tags (not to the host alerts, raised by
+-- the C++ core); their severity is the one of the rule (error when not set).
 local TRAFFIC_RULES_CHECK = "traffic_rules"
 -- Check switching the alerts of the SNMP device rules on/off (see snmp_dev_threshold_check_rules)
 local SNMP_RULES_CHECK = "snmp_device_interface_threshold_crossed"
@@ -150,6 +150,7 @@ function SOURCES.traffic_rule(params)
 
     local sample = samples[1]
     sample.title = i18n(alert_consts.alert_types[rule_alert.alert_type].meta.i18n_title)
+    sample.score = ntop.mapSeverityToScore(tonumber(params.severity_id) or alert_severities.error.severity_id)
     sample.entity = rule_alert.entity
     sample.category = rule_alert.category
 

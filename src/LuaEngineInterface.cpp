@@ -6296,10 +6296,11 @@ static int ntop_interface_update_ip_reassignment(lua_State* vm) {
 
 /* **************************************************************** */
 
-/* @brief Triggers a traffic-threshold alert with configurable severity and details.  Lua: interface.triggerTrafficAlert(params_table) → nil */
+/* @brief Triggers a traffic-threshold alert with configurable severity and details.  Lua: interface.triggerTrafficAlert(ip, metric, frequency_sec, threshold, value, is_major[, score]) → bool */
 static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
   u_int32_t frequency_sec;
   bool t_sign = true;
+  u_int8_t score = SCORE_LEVEL_ERROR;
   char *metric, *ipaddress, ip_buf[64], *host_ip, *tmp, *value, *threshold;
   NetworkInterface* curr_iface = getCurrentInterface(vm);
   bool rc = false;
@@ -6327,6 +6328,9 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
   if (ntop_lua_check(vm, __FUNCTION__, 6, LUA_TBOOLEAN) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_NO_RETURN_VALUE));
   t_sign = (u_int32_t)lua_toboolean(vm, 6);
+
+  /* Optional score (the severity of the traffic rule) */
+  if (lua_type(vm, 7) == LUA_TNUMBER) score = (u_int8_t)lua_tointeger(vm, 7);
 
   snprintf(ip_buf, sizeof(ip_buf), "%s", ipaddress);
   host_ip = strtok_r(ipaddress, "@", &tmp);
@@ -6372,7 +6376,8 @@ static int ntop_interface_trigger_traffic_alert(lua_State* vm) {
         /* Build new alert */
         alert = new TrafficVolumeAlert(
             host_check_traffic_volume, h, CLIENT_FULL_RISK_PERCENTAGE,
-            std::string(metric), frequency_sec, threshold, value, t_sign);
+            std::string(metric), frequency_sec, threshold, value, t_sign,
+            score);
 
         if (alert) {
           /* Specify when the alert will auto-release if not continuously

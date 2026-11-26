@@ -64,10 +64,10 @@ for hook, config in pairs(hooks_config) do
    })
 end
 
--- Severity options (only those used by alerts, sorted by id)
+-- Severity options (an alert has at least info: none is no severity, debug scores as info), sorted by id
 local severities = {}
 for sev_key, sev in pairs(alert_severities) do
-   if sev.used_by_alerts then
+   if sev.severity_id >= alert_severities.info.severity_id then
       severities[#severities + 1] = {
          id    = sev.severity_id,
          key   = sev_key,
