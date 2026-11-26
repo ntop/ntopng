@@ -74,7 +74,8 @@ class Recipients {
    * (once per recipient)
    * @param notification The notification to be enqueued
    *
-   * @return True if the enqueue succeeded, false otherwise
+   * @return False if the alerts store (builtin recipient) dropped it: a full
+   * queue of another recipient is counted by that recipient only
    */
   bool enqueue(const AlertFifoItem* const notification);
 

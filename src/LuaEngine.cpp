@@ -253,6 +253,56 @@ void LuaEngine::luaRegisterAdditional(lua_State* L, const char* class_name,
 
 /* ******************************* */
 
+/* json-c value -> Lua value on the stack (objects and arrays as tables, arrays 1-based) */
+void lua_push_json_value(lua_State* vm, json_object* o, u_int depth) {
+  /* Bounded: the JSON may come from outside (probe, notifications) */
+  if (o == NULL || depth > 16) {
+    lua_pushnil(vm);
+    return;
+  }
+
+  /* One table per level plus its child: more than the LUA_MINSTACK slots when deep */
+  luaL_checkstack(vm, 2, "JSON too deep");
+
+  switch (json_object_get_type(o)) {
+    case json_type_boolean:
+      lua_pushboolean(vm, json_object_get_boolean(o));
+      break;
+    case json_type_int:
+      lua_pushinteger(vm, (lua_Integer)json_object_get_int64(o));
+      break;
+    case json_type_double:
+      lua_pushnumber(vm, json_object_get_double(o));
+      break;
+    case json_type_string:
+      lua_pushlstring(vm, json_object_get_string(o), json_object_get_string_len(o));
+      break;
+    case json_type_array: {
+      size_t n = json_object_array_length(o);
+
+      lua_createtable(vm, (int)n, 0);
+      for (size_t i = 0; i < n; i++) {
+        lua_push_json_value(vm, json_object_array_get_idx(o, i), depth + 1);
+        lua_rawseti(vm, -2, (lua_Integer)i + 1);
+      }
+      break;
+    }
+    case json_type_object: {
+      lua_newtable(vm);
+      json_object_object_foreach(o, key, val) {
+        lua_push_json_value(vm, val, depth + 1);
+        lua_setfield(vm, -2, key);
+      }
+      break;
+    }
+    case json_type_null:
+    default:
+      lua_pushnil(vm);
+  }
+}
+
+/* ******************************* */
+
 int ntop_lua_return_value(lua_State* vm, const char* function_name, int val) {
   bool show_warning;
 

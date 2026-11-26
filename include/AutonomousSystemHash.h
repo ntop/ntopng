@@ -33,6 +33,8 @@ class AutonomousSystemHash : public GenericHash {
                        u_int _max_hash_size);
 
   AutonomousSystem* get(IpAddress* ipa, bool is_inline_call);
+  /* inc_uses: the caller holds the entry (safe from the purge) and must decUses() it */
+  AutonomousSystem* get(u_int32_t asn, bool is_inline_call, bool inc_uses = false);
   void updateASNExportersPrefs();
 
 #ifdef AS_DEBUG

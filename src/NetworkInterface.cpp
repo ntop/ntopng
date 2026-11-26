@@ -5117,13 +5117,6 @@ struct host_find_info {
 
 /* **************************************************** */
 
-struct as_find_info {
-  u_int32_t asn;
-  AutonomousSystem* as;
-};
-
-/* **************************************************** */
-
 struct obs_point_find_info {
   u_int32_t obs_point_id;
   ObservationPoint* obs_point;
@@ -5197,23 +5190,6 @@ static bool find_host_by_name(GenericHashEntry* h, void* user_data,
       *matched = true;
       return (true); /* found */
     }
-  }
-
-  return (false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-static bool find_as_by_asn(GenericHashEntry* he, void* user_data,
-                           bool* matched) {
-  struct as_find_info* info = (struct as_find_info*)user_data;
-  AutonomousSystem* as = (AutonomousSystem*)he;
-
-  if ((info->as == NULL) && info->asn == as->get_asn()) {
-    info->as = as;
-    info->as->incUses(); /* Under the bucket lock: released by the caller */
-    *matched = true;
-    return (true); /* found */
   }
 
   return (false); /* false = keep on walking */
@@ -10808,24 +10784,15 @@ bool NetworkInterface::setMacDeviceType(char* strmac, DeviceType dtype,
 
 bool NetworkInterface::getASInfo(lua_State* vm, u_int32_t asn,
                                  DetailsLevel details_level) {
-  struct as_find_info info;
-  bool ret;
-  u_int32_t begin_slot = 0;
-  bool walk_all = true;
+  /* Bucket lookup: a walk of the whole hash per ASN made the ASN timeseries dump O(N^2) */
+  AutonomousSystem* as = ases_hash ? ases_hash->get(asn, false /* not inline */, true /* inc_uses */) : NULL;
 
-  memset(&info, 0, sizeof(info));
-  info.asn = asn;
+  if (as == NULL) return (false);
 
-  walker(&begin_slot, walk_all, walker_ases, find_as_by_asn, (void*)&info);
+  as->lua(vm, details_level, false);
+  as->decUses(); /* incUses in the lookup */
 
-  if (info.as) {
-    info.as->lua(vm, details_level, false);
-    info.as->decUses(); /* incUses in the find callback */
-    ret = true;
-  } else
-    ret = false;
-
-  return ret;
+  return (true);
 }
 
 /* **************************************** */

@@ -329,18 +329,6 @@ local function update_rrd(schema, rrdfile, timestamp, data)
       traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Going to update %s [%s]", schema.name, rrdfile))
    end
 
-   -- Verify last update time
-   local last_update = ntop.rrd_lastupdate(rrdfile)
-
-   if ((last_update ~= nil) and (timestamp <= last_update)) then
-      if isDebugEnabled() then
-         traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("Skip RRD update in the past: timestamp=%u but last_update=%u", timestamp, last_update))
-      end
-
-      return false
-   end
-
    for _, metric in ipairs(schema._metrics) do
       params[#params + 1] = number_to_rrd_string(data[metric], schema)
    end
@@ -353,7 +341,16 @@ local function update_rrd(schema, rrdfile, timestamp, data)
    local err = ntop.rrd_update(rrdfile, table.unpack(params))
 
    if (err ~= nil) then
-      traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+      -- librrd rejects points not newer than the last update: no separate rrd_lastupdate
+      -- check: it opened the file once more per point (half of the RRD calls time)
+      if string.find(err, "illegal attempt to update using time", 1, true) then
+         if isDebugEnabled() then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Skip RRD update in the past: " .. err)
+         end
+      else
+         traceError(TRACE_ERROR, TRACE_CONSOLE, err)
+      end
+
       return false
    end
 
@@ -1396,6 +1393,29 @@ end
 
 -- ##############################################
 
+-- Field set of a line protocol point, e.g. "bytes_sent=849500,bytes_rcvd=5134958"
+local function parse_field_set(field_set)
+   local metrics = {}
+   local items = field_set:split(",")
+
+   if not items then
+      -- Just one metric
+      items = {field_set}
+   end
+
+   for i = 1, #items do
+      local field_items = items[i]:split("=")
+
+      if field_items and #field_items == 2 then
+         metrics[field_items[1]] = tonumber(field_items[2]) or field_items[2]
+      end
+   end
+
+   return metrics
+end
+
+-- ##############################################
+
 -- Parses a line in line protocol format (https://docs.influxdata.com/influxdb/v1.7/write_protocols/line_protocol_tutorial/)
 -- into tags and metrics
 local function line_protocol_to_tags_and_metrics(protocol_line)
@@ -1419,7 +1439,6 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
 
    local measurement
    local tags = {}
-   local metrics = {}
 
    -- Parse measurement and tags
    local items = measurement_and_tag_set:split(",")
@@ -1437,29 +1456,49 @@ local function line_protocol_to_tags_and_metrics(protocol_line)
       end
    end
 
-   -- Parse metrics
-   local items = field_set:split(",")
-   if not items then
-      -- Just one metric
-      items = {field_set}
-   end
-
-   for i = 1, #items do
-      local field_items = items[i]:split("=")
-
-      if field_items and #field_items == 2 then
-         metrics[field_items[1]] = tonumber(field_items[2]) or field_items[2]
-      end
-   end
-
    local res = {
       schema_name = measurement,
       tags = tags,
-      metrics = metrics,
+      metrics = parse_field_set(field_set),
       timestamp = tonumber(timestamp)
    }
 
    return res
+end
+
+-- ##############################################
+
+-- RRD file of each series written by driver:export(), keyed by the point "measurement,tag_set":
+-- skips parsing the tags and building the path, ~1/3 of the per-point cost with many series.
+-- shortcut: cleared when full (~180 bytes per entry, ~53 MB at most), raise it if the RRD files are more
+local RRD_PATH_CACHE_MAX_ENTRIES = 300000
+local rrd_path_cache = {}
+local rrd_path_cache_entries = 0
+
+local function get_rrd_path(schema, measurement_and_tag_set, ts_point)
+   local rrdfile = rrd_path_cache[measurement_and_tag_set]
+
+   if rrdfile then
+      return rrdfile
+   end
+
+   local base, rrd = schema_get_path(schema, line_protocol_to_tags_and_metrics(ts_point)["tags"])
+
+   if not rrd then
+      return nil
+   end
+
+   rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+
+   if rrd_path_cache_entries >= RRD_PATH_CACHE_MAX_ENTRIES then
+      rrd_path_cache = {}
+      rrd_path_cache_entries = 0
+   end
+
+   rrd_path_cache[measurement_and_tag_set] = rrdfile
+   rrd_path_cache_entries = rrd_path_cache_entries + 1
+
+   return rrdfile
 end
 
 -- ##############################################
@@ -1476,33 +1515,31 @@ function driver:export()
    local cur_ifid = tonumber(interface.getId())
 
    for cur_dequeue = 1, rrd_queue_max_dequeues_per_interface do
-      local ts_point = interface.rrd_dequeue(tonumber(cur_ifid))
+      local ts_point = interface.rrd_dequeue(cur_ifid)
 
       if not ts_point then
          break
       end
 
-      local parsed_ts_point = line_protocol_to_tags_and_metrics(ts_point)
+      -- Same split as line_protocol_to_tags_and_metrics
+      local measurement_and_tag_set, field_set, timestamp = ts_point:match("(.+)%s(.+)%s(.+)\n")
 
       -- No need to do coherence checks on the schema. This queue is 'private' and should
       -- only be written with valid data already checked.
-      local schema = ts_utils.getSchema(parsed_ts_point["schema_name"])
-      local timestamp = parsed_ts_point["timestamp"]
-      local tags = parsed_ts_point["tags"]
-      local metrics = parsed_ts_point["metrics"]
-      local base, rrd = schema_get_path(schema, tags)
+      local schema = ts_utils.getSchema(measurement_and_tag_set:match("^[^,]+"))
+      local rrdfile = get_rrd_path(schema, measurement_and_tag_set, ts_point)
 
-      if rrd then
-         local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
+      if rrdfile then
+         timestamp = tonumber(timestamp)
 
          if not ntop.notEmptyFile(rrdfile) then
-            ntop.mkdir(base)
+            ntop.mkdir(rrdfile:match("^(.*)[/\\]"))
             if not create_rrd(schema, rrdfile, timestamp) then
                return(num)
             end
          end
 
-         update_rrd(schema, rrdfile, timestamp, metrics)
+         update_rrd(schema, rrdfile, timestamp, parse_field_set(field_set))
 	 num = num + 1
       end
    end

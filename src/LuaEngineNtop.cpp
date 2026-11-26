@@ -1907,6 +1907,44 @@ static int ntop_register_runtime_interface(lua_State* vm) {
 
 /* ****************************************** */
 
+/* @brief Parses a JSON string with json-c (much faster than dkjson), nil on error; JSON null values are nil.  Lua: ntop.jsonDecode(string) → table|nil */
+static int ntop_json_decode(lua_State* vm) {
+  size_t len;
+  const char* str;
+  json_object* o;
+  json_tokener* tok;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  str = lua_tolstring(vm, 1, &len);
+
+  if ((tok = json_tokener_new()) == NULL) {
+    lua_pushnil(vm);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+  }
+
+  o = json_tokener_parse_ex(tok, str, (int)len);
+
+  /* Incomplete document: not valid JSON */
+  if (o && (json_tokener_get_error(tok) != json_tokener_success)) {
+    json_object_put(o);
+    o = NULL;
+  }
+
+  json_tokener_free(tok);
+
+  if (o) {
+    lua_push_json_value(vm, o, 0);
+    json_object_put(o);
+  } else
+    lua_pushnil(vm);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ONE_RETURN_VALUE));
+}
+
+/* ****************************************** */
+
 /* @brief Returns the current time as a floating-point millisecond timestamp.  Lua: ntop.gettimemsec() → number */
 static int ntop_gettimemsec(lua_State* vm) {
   struct timeval tp;
@@ -7619,7 +7657,8 @@ static int ntop_rrd_update(lua_State* vm) {
       char* err = rrd_get_error();
 
       if (err != NULL) {
-        char error_buf[256];
+        /* The file name is twice in the message: room for the whole librrd error (Lua matches it) */
+        char error_buf[1024];
 
         snprintf(error_buf, sizeof(error_buf),
                  "rrd_update_r() [%s][%s] failed [%s]", filename, buf, err);
@@ -9375,6 +9414,9 @@ static luaL_Reg _ntop_reg[] = {
     {"getMinuteSamplingsInterval", ntop_stats_get_minute_samplings_interval},
 
     {"deleteOldRRDs", ntop_delete_old_rrd_files},
+
+    /* JSON */
+    {"jsonDecode", ntop_json_decode},
 
     /* Time */
     {"gettimemsec", ntop_gettimemsec},

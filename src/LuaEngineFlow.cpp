@@ -297,53 +297,6 @@ static int ntop_flow_get_l7_proto_dns(lua_State* vm) {
 
 /* **************************************************************** */
 
-/* json-c value -> Lua value on the stack (objects and arrays as tables, arrays 1-based) */
-static void lua_push_json_value(lua_State* vm, json_object* o, u_int depth) {
-  /* Bounded: the JSON comes from the probe */
-  if (o == NULL || depth > 16) {
-    lua_pushnil(vm);
-    return;
-  }
-
-  switch (json_object_get_type(o)) {
-    case json_type_boolean:
-      lua_pushboolean(vm, json_object_get_boolean(o));
-      break;
-    case json_type_int:
-      lua_pushinteger(vm, (lua_Integer)json_object_get_int64(o));
-      break;
-    case json_type_double:
-      lua_pushnumber(vm, json_object_get_double(o));
-      break;
-    case json_type_string:
-      lua_pushlstring(vm, json_object_get_string(o), json_object_get_string_len(o));
-      break;
-    case json_type_array: {
-      size_t n = json_object_array_length(o);
-
-      lua_createtable(vm, (int)n, 0);
-      for (size_t i = 0; i < n; i++) {
-        lua_push_json_value(vm, json_object_array_get_idx(o, i), depth + 1);
-        lua_rawseti(vm, -2, (lua_Integer)i + 1);
-      }
-      break;
-    }
-    case json_type_object: {
-      lua_newtable(vm);
-      json_object_object_foreach(o, key, val) {
-        lua_push_json_value(vm, val, depth + 1);
-        lua_setfield(vm, -2, key);
-      }
-      break;
-    }
-    case json_type_null:
-    default:
-      lua_pushnil(vm);
-  }
-}
-
-/* **************************************************************** */
-
 /* @brief Returns the additional fields of the flow sent by the probe (e.g. nProbe plugins), {} when none.  Lua: flow.json_info() → table */
 static int ntop_flow_get_json_info(lua_State* vm) {
   NtopngLuaContext* c = getLuaVMContext(vm);

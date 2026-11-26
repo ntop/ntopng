@@ -139,10 +139,13 @@ bool Recipients::enqueue(const AlertFifoItem* const notification) {
       targets.bitmapOr(policies[policy_id]->getRecipients());
   }
 
+  /* A full queue of one of these recipients is a drop of that recipient only
+     (counted by its RecipientQueue): the alert is dropped (res) only when the
+     builtin recipient, the alerts store, misses it */
   for (int recipient_id = targets.getNext(1); recipient_id >= 0;
        recipient_id = targets.getNext(recipient_id + 1)) {
     if (recipient_queues[recipient_id])
-      res &= recipient_queues[recipient_id]->enqueue(notification);
+      recipient_queues[recipient_id]->enqueue(notification);
   }
 
   m.unlock(__FILE__, __LINE__);

@@ -64,6 +64,11 @@ local function readSettings(recipient)
       else
          settings.port = tonumber(settings.port)
       end
+
+      -- Header of the remote messages: read once per batch, not per message
+      -- (ntop.getInfo() builds a big table)
+      settings.local_host = ntop.getHostInformation().ip
+      settings.pid = ntop.getInfo().pid
    end
 
    return settings
@@ -100,7 +105,7 @@ function syslog.sendMessage(settings, notif, severity)
      if ntop.isEnterpriseM and ntop.isEnterpriseM() then
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         local ecs_format = require "ecs_format"
-        msg = json.encode(ecs_format.format(json.decode(notif)))
+        msg = json.encode(ecs_format.format(ntop.jsonDecode(notif)))
      else
         return false
      end
@@ -108,7 +113,7 @@ function syslog.sendMessage(settings, notif, severity)
       if ntop.isEnterpriseM and ntop.isEnterpriseM() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local checkmk_format = require "checkmk_format"
-         msg = checkmk_format.format(json.decode(notif))
+         msg = checkmk_format.format(ntop.jsonDecode(notif))
       else 
          return false
       end
@@ -116,13 +121,13 @@ function syslog.sendMessage(settings, notif, severity)
       if ntop.isEnterpriseXL and ntop.isEnterpriseXL() then
          package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
          local cef_utils = require "cef_utils"
-         msg = cef_utils.format(json.decode(notif))
+         msg = cef_utils.format(ntop.jsonDecode(notif))
       else
          return false
       end
    else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plain text message
-      msg = format_utils.formatMessage(json.decode(notif), {
+      msg = format_utils.formatMessage(ntop.jsonDecode(notif), {
          nohtml = true,
          show_severity = true,
          show_entity = true,
@@ -137,11 +142,9 @@ function syslog.sendMessage(settings, notif, severity)
       local facility = 14 -- log alert
       local level = syslog_severity
       local prio = (facility * 8) + level
-      local host_info = ntop.getHostInformation()
-      local host = host_info.ip
+      local host = settings.local_host
       local tag = "ntopng"
-      local info = ntop.getInfo()
-      local pid = info.pid
+      local pid = settings.pid
 
       if syslog_format == "cef" then
          -- CEF: syslog header
@@ -230,10 +233,11 @@ function syslog.dequeueRecipientAlerts(recipient, budget)
       if not syslog.sendMessage(settings, notification.alert, map_score_to_severity(notification.score)) then
          success = false
          error_message = "Unable to send alerts to syslog"
-         failures = failures + #notifications
+         -- This one and the ones not sent yet (the ones before were delivered)
+         failures = #notifications - delivered
          goto done
       else
-         delivered = delivered + #notifications
+         delivered = delivered + 1
       end
    end
 
