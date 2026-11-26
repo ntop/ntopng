@@ -2021,7 +2021,7 @@ bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow* const flow,
     flow->dst_port = htons((u_int32_t)value->int_num);
     ret = true;
   } else if (!strncmp(key, "INTERFACE_NAME", 7) && key_len == 14) {
-    flow->ifname = (char*)json_object_get_string(jvalue);
+    flow->ifname = strdup((char*)json_object_get_string(jvalue));
     ret = true;
   } else if (key_len >= 14 &&
              !strncmp(&key[key_len - 14], "FATHER_PROCESS", 14)) {
