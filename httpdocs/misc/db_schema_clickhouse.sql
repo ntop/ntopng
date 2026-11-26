@@ -1568,7 +1568,7 @@ CREATE TABLE IF NOT EXISTS `assets_journal` (
 @
 ALTER TABLE `assets_journal` ADD COLUMN IF NOT EXISTS `subaction` LowCardinality(String) DEFAULT '' AFTER `action`;
 @
-ALTER TABLE `assets_journal` MODIFY COMMENT 'Journal of the assets: one row per event (a change of a field of an asset, an asset created or deleted, a manual note), with the time of the event, who caused it, the action and a message. Entries are deleted only when a user deletes their assets. See doc/developers/README.assets_journal.md.';
+ALTER TABLE `assets_journal` MODIFY COMMENT 'Journal of the assets: one row per event (a change of a field of an asset, an asset created or deleted, a manual note), with the time of the event, who caused it, the action and a message. Entries are deleted when a user deletes their assets, and after the retention days of the journal (preference). See doc/developers/README.assets_journal.md.';
 @
 ALTER TABLE `assets_journal`
   MODIFY COLUMN `ifid` COMMENT 'ntopng interface of the asset',

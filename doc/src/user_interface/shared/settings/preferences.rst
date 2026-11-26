@@ -66,7 +66,8 @@ The check runs daily: since ClickHouse data is partitioned by day, ntopng delete
 whole daily partitions older than the configured number of days.
 
 - Other ClickHouse data has its own retention, configured in the same section:
-  aggregated flows, aggregated ASN data, vulnerability scan reports and Wazuh alerts.
+  aggregated flows, aggregated ASN data, vulnerability scan reports, Wazuh alerts and
+  the journal of the assets (see :ref:`AssetsJournal`).
   Timeseries follow the *Timeseries and Top Talkers Retention*.
 - Aggregated flows must be kept longer than raw flows: when the raw flows retention
   is set to a value equal or greater than the aggregated flows retention, the latter
@@ -91,7 +92,7 @@ alerts, one daily partition at a time, until the database is back under the limi
 
 - The limit applies to the whole ntopng ClickHouse database, but only raw flows and
   alerts are deleted. Aggregated flows, aggregated ASN data, vulnerability scan reports,
-  Wazuh alerts and timeseries keep their own retention.
+  Wazuh alerts, the journal of the assets and timeseries keep their own retention.
 - The current day is never deleted.
 - The day-based :ref:`Flows/Alerts Data Retention <Days Data Retention>` still applies: data is deleted when
   either limit is reached.
