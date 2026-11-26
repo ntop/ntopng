@@ -24,8 +24,33 @@ local INTERFACE_ROLE_INTERNET_EXCHANGE = 4
 --- Interface roles that can be used to filter the AS traffic
 local INTERFACE_ROLE_VALUES = { "transit", "peering", "ix" }
 
+--- Redis keys of the ASN roles, also read by C++ (see ntop_defines.h, Prefs::reloadASNConfiguration)
+local CUSTOMER_ASN_KEY = "ntopng.prefs.config_customer_asn_list"
+local SUB_CUSTOMER_ASN_KEY = "ntopng.prefs.config_sub_customer_asn_list"
+local REMOTE_ASN_KEY = "ntopng.prefs.config_remote_asn_list"
+
 --- ASN utilities module
 local as_utils = {}
+
+--- Lists of Admin > Network Configuration > ASN Configuration.
+--- group "role": relationship of the ASN with this network.
+--- group "category": kind of network of the ASN, independent of its role (e.g. a remote ASN that is a CDN).
+as_utils.asn_lists = {
+    { key = "customer_asn", group = "role", redis_key = CUSTOMER_ASN_KEY,
+      i18n_title = "asn_configuration.customer_asn_title", i18n_description = "asn_configuration.customer_asn_description" },
+    { key = "sub_customer_asn", group = "role", redis_key = SUB_CUSTOMER_ASN_KEY,
+      i18n_title = "asn_configuration.sub_customer_asn_title", i18n_description = "asn_configuration.sub_customer_asn_description" },
+    { key = "remote_asn", group = "role", redis_key = REMOTE_ASN_KEY,
+      i18n_title = "asn_configuration.remote_asn_title", i18n_description = "asn_configuration.remote_asn_description" },
+    { key = "cdn_asn", group = "category", redis_key = "ntopng.prefs.config_cdn_asn_list",
+      i18n_title = "asn_configuration.cdn_asn_title", i18n_description = "asn_configuration.cdn_asn_description" },
+    { key = "hosting_asn", group = "category", redis_key = "ntopng.prefs.config_hosting_asn_list",
+      i18n_title = "asn_configuration.hosting_asn_title", i18n_description = "asn_configuration.hosting_asn_description" },
+    { key = "transit_asn", group = "category", redis_key = "ntopng.prefs.config_transit_asn_list",
+      i18n_title = "asn_configuration.transit_asn_title", i18n_description = "asn_configuration.transit_asn_description" },
+    { key = "isp_asn", group = "category", redis_key = "ntopng.prefs.config_isp_asn_list",
+      i18n_title = "asn_configuration.isp_asn_title", i18n_description = "asn_configuration.isp_asn_description" },
+}
 
 ---
 -- Parses a comma-separated string of ASN numbers into a lookup table
@@ -230,21 +255,21 @@ end
 -- Retrieves the customer ASN list from cache
 -- @return string Comma-separated list of customer ASNs
 function as_utils.getCustomerASNList()
-    return ntop.getCache("ntopng.prefs.config_customer_asn_list") or ""
+    return ntop.getCache(CUSTOMER_ASN_KEY) or ""
 end
 
 ---
 -- Retrieves the sub-customer ASN list from cache
 -- @return string Comma-separated list of sub-customer ASNs
 function as_utils.getSubCustomerASNList()
-    return ntop.getCache("ntopng.prefs.config_sub_customer_asn_list") or ""
+    return ntop.getCache(SUB_CUSTOMER_ASN_KEY) or ""
 end
 
 ---
 -- Retrieves the remote ASN list from cache
 -- @return string Comma-separated list of remote ASNs
 function as_utils.getRemoteASNList()
-    return ntop.getCache("ntopng.prefs.config_remote_asn_list") or ""
+    return ntop.getCache(REMOTE_ASN_KEY) or ""
 end
 
 --- Cached customer ASN lookup table
@@ -336,6 +361,26 @@ function as_utils.getASNConfiguration(asn)
     end
 
     return res
+end
+
+local cached_asn_category = nil
+
+---
+-- Returns the category of an ASN (an ASN can be in one category only)
+-- @param asn The ASN number (string or number)
+-- @return string|nil The key of its category in as_utils.asn_lists (e.g. "cdn_asn"), nil if not configured
+function as_utils.getASNCategory(asn)
+    if not cached_asn_category then
+        cached_asn_category = {}
+        for _, list in ipairs(as_utils.asn_lists) do
+            if list.group == "category" then
+                for category_asn in pairs(parseASNList(ntop.getCache(list.redis_key) or "")) do
+                    cached_asn_category[category_asn] = list.key
+                end
+            end
+        end
+    end
+    return cached_asn_category[tostring(asn)]
 end
 
 ---

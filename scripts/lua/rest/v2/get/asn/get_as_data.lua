@@ -151,6 +151,7 @@ for pos, value in pairs(res or {}) do
         elseif remote_asn[as] then
             value.is_remote_asn = true
         end
+        value.asn_category = as_utils.getASNCategory(as)
     end
 end
 
