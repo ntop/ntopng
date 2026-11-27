@@ -26,6 +26,7 @@ local function addTopTimeseries(tags, tsOptions)
             local asn = serie.tags.asn
 
             timeseries[#timeseries + 1] = {
+                asn = tonumber(asn),
                 schema = "asn:traffic",
                 id = timeseries_id,
                 priority = 2,
@@ -47,6 +48,14 @@ local function addTopTimeseries(tags, tsOptions)
                 }
             }
         end
+
+        -- The series come by traffic: the top AS stays the one drawn by default, the select lists them
+        -- by ASN number (as their labels start)
+        if timeseries[1] then
+            timeseries[1].default_visible = true
+        end
+
+        table.sort(timeseries, function(a, b) return (a.asn or 0) < (b.asn or 0) end)
     end
 
     return timeseries
