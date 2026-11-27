@@ -408,6 +408,18 @@ local rest_utils = {
                 str = "NO_FREE_TAGS"
             },
 
+            -- Assets
+            asset_host_active = {
+                http_code = 409,
+                rc = -68,
+                str = "ASSET_HOST_ACTIVE"
+            },
+            asset_last_vlan = {
+                http_code = 409,
+                rc = -69,
+                str = "ASSET_LAST_VLAN"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

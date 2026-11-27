@@ -361,7 +361,11 @@ one asset. The VLAN is not a field: the asset keeps the list of its VLANs
 `Update` entry with subaction `vlan` (`vlan_added`: "Add VLAN 188: <cause>",
 the cause being the flow that has created the host of that VLAN, sent with its
 first snapshot). The MAC of the asset is kept only when all its VLANs agree:
-otherwise it is cleared once ("Clear MAC address (was ...)").
+otherwise it is cleared once ("Clear MAC address (was ...)"). A VLAN removed by
+a user (`delete/host/asset_vlan.lua`, see `README.assets_vlan.md`) gives
+`vlan_removed` ("Remove VLAN 188: manually removed by a user", subaction
+`vlan`), then the changes it brings (e.g. the MAC set again) with the cause
+`cause_vlan_removed` ("removed with VLAN 188").
 
 ### Server ports
 

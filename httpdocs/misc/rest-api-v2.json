@@ -11836,6 +11836,82 @@
         }
       }
     },
+    "/lua/pro/rest/v2/delete/host/asset_vlan.lua": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Remove a VLAN from an asset",
+        "description": "Remove a VLAN from a host asset: the data of the host of the asset on that VLAN, a host no longer there (e.g. the device moved to another VLAN). Only the data kept per VLAN are removed (last seen, MAC address, router, usernames, TCP fingerprints, and the tags with Enterprise M), with what derives from them (the VLANs and the MAC address of the asset); the rest of the asset (e.g. names, server ports) is kept. The host itself is not touched: if it comes back, it adds the VLAN again; so does its last snapshot, sent when it went away, if still waiting to be processed (about a minute): the VLAN can then be removed again. Refused while the host is active (the VLAN is shown as online), and for the only VLAN of the asset (delete the asset instead). The journal of the assets records the removal. Enterprise M, administrators only",
+        "operationId": "delete_host_asset_vlan",
+        "produces": [
+          "application/json"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "csrf",
+                "ifid",
+                "serial_key",
+                "vlan"
+              ],
+              "properties": {
+                "csrf": {
+                  "type": "string",
+                  "description": "CSRF token"
+                },
+                "ifid": {
+                  "type": "integer",
+                  "description": "Interface identifier"
+                },
+                "serial_key": {
+                  "type": "string",
+                  "description": "Asset key (key field of rest/v2/get/host/assets.lua)"
+                },
+                "vlan": {
+                  "type": "integer",
+                  "description": "VLAN to remove (one of the VLANs of the asset)"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND (no such asset, or the VLAN is not one of the asset)"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR (the asset could not be written)"
+          },
+          "-68": {
+            "description": "ASSET_HOST_ACTIVE (the host of the asset on that VLAN is active)"
+          },
+          "-69": {
+            "description": "ASSET_LAST_VLAN (the only VLAN of the asset: delete the asset instead)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/delete/host/new_devices.lua": {
       "get": {
         "tags": [
