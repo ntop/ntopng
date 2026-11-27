@@ -1,0 +1,20 @@
+{
+  "name": "nedge-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev . --host 0.0.0.0 --port 5173",
+    "build": "vitepress build .",
+    "postbuild": "node tools/legacy-images.mjs",
+    "preview": "vitepress preview . --port 4173",
+    "pdf": "node tools/pdf.mjs"
+  },
+  "devDependencies": {
+    "markdown-it-deflist": "^4.0.0",
+    "markdown-it-image-figures": "^2.1.1",
+    "medium-zoom": "^1.1.0",
+    "playwright-core": "^1.65.1",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-llms": "^1.0.0"
+  }
+}

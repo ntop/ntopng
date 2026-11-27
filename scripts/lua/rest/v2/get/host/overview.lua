@@ -108,7 +108,7 @@ local ext = {
    resolving = ntop.shouldResolveHost(host_ip) or false,
    notes = getHostNotes({ host = host_ip, vlan = host_vlan }),
    -- Syslog events of the host (page_utils.showSyslog)
-   show_syslog = is_admin and hasClickHouseSupport() and (ntop.getPref("ntopng.prefs.menu_entries.experimental_features") == "1"),
+   show_syslog = is_admin and hasClickHouseSupport() and (ntop.isEnterpriseXL and ntop.isEnterpriseXL()) and (ntop.getPref("ntopng.prefs.menu_entries.experimental_features") == "1"),
 }
 
 -- Traffic blocking of inline interfaces (as the old page: a preference per IP)

@@ -1,0 +1,90 @@
+---
+title: "MCP Server"
+description: "nAnalyst exposes all of its network intelligence tools as a Model Context Protocol (MCP) server running on your ntopng instance. This allows any..."
+outline: [2, 3]
+lastUpdated: 2026-11-16T12:03:36+01:00
+---
+
+<a id="nanalystmcp"></a>
+
+# MCP Server {#mcp-server}
+
+nAnalyst exposes all of its network intelligence tools as a Model Context Protocol (MCP) server running on your ntopng instance. This allows any MCP-compatible AI client — such as Claude Code, Cursor, or a custom agent — to query ntopng data and take actions directly.
+
+::: info
+This page explains how external AI clients use ntopng. To let nAnalyst call external MCP servers instead, see [External MCP Servers](/nanalyst/mcp_client.md#nanalystmcpclient).
+:::
+
+## What is MCP? {#what-is-mcp}
+
+The [Model Context Protocol](https://modelcontextprotocol.io) is an open standard that lets AI applications connect to external tools and data sources through a defined interface. An MCP server exposes a set of tools that any compatible LLM client can discover and call.
+
+ntopng's MCP server makes the full nAnalyst tool set available to external clients without any additional installation.
+
+## Connecting an MCP client {#connecting-an-mcp-client}
+
+No additional software needs to be installed on the ntopng host. The MCP server runs as part of ntopng and is available as soon as nAnalyst is enabled.
+
+**Claude Code**
+
+To connect to the internal ntopng MCP server, simply type the following command on the machine running claude code:
+
+```javascript
+claude mcp add-json ntopng \
+'{"type":"http","url":"http://NTOPNG_URL:NTOPNG_PORT/lua/rest/v2/exec/llm/mcp.lua","headers":{"Authorization":"Token YOUR_TOKEN"}}' \
+--scope user
+```
+
+## Authentication {#authentication}
+
+MCP requests are authenticated using ntopng API keys. Keys are generated and managed in ntopng under **User -> User Authentication Token**. Assign appropriate permissions to the key based on whether the client needs read-only access or the ability to create policies and monitoring scripts.
+
+::: info
+The MCP server honours ntopng's existing role-based access control. A key with read-only permissions cannot create policies or add monitoring scripts even if the client requests it.
+:::
+
+![ntopng auth token](../img/nAnalyst_auth_token.png "ntopng Auth Token")
+
+**Cursor and other MCP clients**
+
+Use the same endpoint URL and authentication header. Refer to your client's MCP configuration documentation for the exact format.
+
+## Available tools via MCP {#available-tools-via-mcp}
+
+The MCP server exposes all nAnalyst domain tools, including:
+
+- `get_live_flows` — query currently active flows
+- `get_historical_flow` — search historical flow records
+- `get_host_info` — retrieve host metadata and statistics
+- `get_asset_info` — query asset inventory
+- `get_snmp_device_info` — retrieve SNMP device data
+- `chart` — generate time-series or ranked charts
+- `query` — execute arbitrary ClickHouse SQL
+- `add_active_monitoring_script` — register a new monitoring probe
+- `create_ai_policy` — create a policy from a natural language description
+- `list_protos` — enumerate nDPI-detected application protocols
+
+The examples above are only a subset. The MCP server exposes the same tools available to the nAnalyst chat interface. The complete, up-to-date list of tools and the editions that include them is maintained in one place: [Tools and Licensing](/nanalyst/tools_and_licensing.md#nanalysttoolslicensing) (online at [Tools and Licensing](https://www.ntop.org/guides/ntopng/nanalyst/tools_and_licensing.html)).
+
+## Use cases {#use-cases}
+
+**Analyst with Claude Code**
+
+An analyst running Claude Code on their workstation can connect to ntopng and investigate incidents using natural language — without opening a browser. The full nAnalyst reasoning capability is available through the terminal.
+
+**Custom agents**
+
+Security teams can build custom automation agents that call ntopng tools as part of a larger workflow — for example, an agent that correlates ntopng flow data with SIEM events or a ticketing system.
+
+**CI/CD and runbooks**
+
+Operational runbooks can query ntopng programmatically via MCP to verify network state before or after deployments.
+
+## Further reading {#further-reading}
+
+- [AI-Powered Network Monitoring: Introducing the ntopng MCP Server](https://www.ntop.org/ai-powered-network-monitoring-introducing-ntopng-mcp-server/)
+- [HowTo: Use LLMs with ntopng (Part I)](https://www.ntop.org/howto-use-llms-with-ntopng-part-i/)
+- [Model Context Protocol specification](https://modelcontextprotocol.io)
+- [Claude Code MCP documentation](https://docs.anthropic.com/en/docs/claude-code/mcp)
+- [Cursor MCP guide](https://docs.cursor.com/context/model-context-protocol)
+- [ntopng REST API documentation](https://www.ntop.org/guides/ntopng/api/)

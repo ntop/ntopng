@@ -39,7 +39,7 @@
 			"id": "types",
 			"title_i18n": "traffic_model.briefing.col_type",
 			"data_field": "types",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "120px",
 			"class": [
 				"text-nowrap"
@@ -81,7 +81,7 @@
 		{
 			"id": "clients",
 			"data_field": "clients",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "100px",
 			"render_type": "number",
 			"class": [
@@ -93,7 +93,7 @@
 		{
 			"id": "protocols",
 			"data_field": "protocols",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "200px",
 			"class": [
 				"text-nowrap"

@@ -1,0 +1,376 @@
+---
+title: "Command Line Options"
+description: "ntopng supports a large number of command line parameters. To see what they are, simply enter the command ntopng -h and the help information should be printed"
+outline: [2, 3]
+lastUpdated: 2026-08-31T11:15:02+02:00
+---
+
+<a id="clioptions"></a>
+
+# Command Line Options {#command-line-options}
+
+ntopng supports a large number of command line parameters. To see what they are, simply enter the command ntopng -h and the help information should be printed
+
+```bash
+Usage:
+  ntopng <configuration file path>
+  or
+  ntopng <command line options>
+
+Options:
+[--dns-mode|-n] <mode>              | DNS address resolution mode
+                                    | 0 - Decode DNS responses and resolve
+                                    |     local numeric IPs only (default)
+                                    | 1 - Decode DNS responses and resolve all
+                                    |     numeric IPs
+                                    | 2 - Decode DNS responses but don't
+                                    |     resolve numeric IPs
+                                    | 3 - Don't decode DNS/MDNS/HTTP/TLS responses
+                                    |     and don't resolve numeric IPs (all hosts)
+                                    | 4 - Don't decode DNS/MDNS/HTTP/TLS responses
+                                    |     and don't resolve numeric IPs (localhost only)
+[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
+                                    | view or pcap file path, including:
+                                    | zmq://<IP address>         [ZMQ flow collection]
+                                    | tcp://<IP address>         [Deprecated - use zmq://]
+                                    | kafka://<brokers list>     [Kafka flow collection]
+                                    | kafka-ssl://<brokers list> [Kafka flow collection over SSL/TLS]
+[--data-dir|-d] <path>              | Data directory (must be writable).
+                                    | Default: /var/lib/ntopng
+[--install-dir|-t] <path>           | Set the installation directory to <dir>.
+                                    | Should be set when installing ntopng
+                                    | under custom directories
+[--daemon|-e]                       | Daemonize ntopng
+[--httpdocs-dir|-1] <path>          | HTTP documents root directory.
+                                    | Default: httpdocs
+[--scripts-dir|-2] <path>           | Scripts directory.
+                                    | Default: scripts
+[--callbacks-dir|-3] <path>         | Callbacks directory.
+                                    | Default: scripts/callbacks
+[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic
+                                    | recording in PCAP format.
+                                    | Default: /var/lib/ntopng
+[--no-promisc|-u]                   | Don't set the interface in promisc mode.
+[--geoip-dir] <dir>                 | Load GeoIP databases from the specified directory.
+[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.
+                                    | Addr can be an IPv4 (192.168.1.1)
+                                    | or IPv6 ([3ffe:2a00:100:7031::1]) addr.
+                                    | Surround IPv6 addr with square brackets.
+                                    | Prepend a ':' without addr before the
+                                    | listening port on the loopback address.
+                                    | Default port: 3000
+                                    | Examples:
+                                    | -w :3000
+                                    | -w 192.168.1.1:3001
+                                    | -w [3ffe:2a00:100:7031::1]:3002
+[--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: 3001
+[--http-log|-L] <path>              | Log HTTP requests in the specified file
+[--local-networks|-m] <local nets>  | Local networks in CIDR format and
+                                    | autonomous system in asn<number> format.
+                                    | The file accepts multiple lines with networks in CIDR format.
+                                    | An optional '=<alias>' is supported
+                                    | to specify an alias.
+                                    | Examples:
+                                    | -m "192.168.1.0/24,172.16.0.0/16"
+                                    | -m "192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8"
+                                    | -m "/path/to/local_networks_file"
+[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file
+                                    | (eg. protos.txt)
+[--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as
+                                    | [h[:port[:pwd]]][@db-id] where db-id
+                                    | identifies the database Id (default 0).
+                                    | h is the host running Redis (default
+                                    | localhost), optionally followed by a
+                                    |  ':'-separated port (default 6379).
+                                    | The special characters \ and ` are not
+                                    | supported by ntopng.
+                                    | A password can be specified after
+                                    | the port when Redis auth is required.
+                                    | By default password auth is disabled.
+                                    | On unix <fmt> can also be the redis socket file path.
+                                    | Port is ignored for socket-based connections.
+                                    | Examples:
+                                    | -r @2
+                                    | -r 129.168.1.3
+                                    | -r 129.168.1.3:6379@3
+                                    | -r 129.168.1.3:6379:nt0pngPwD@0
+                                    | -r /var/run/redis/redis.sock
+                                    | -r /var/run/redis/redis.sock@2
+[--core-affinity|-g] <ids>          | Bind the capture/processing threads to
+                                    | specific CPU cores (specified as a comma-
+                                    | separated list of core id)
+[--other-core-affinity|-y] <ids>    | Bind service threads to specific CPU cores
+                                    | (specified as a comma-separated list of core id)
+[--user|-U] <sys user>              | Run ntopng with the specified user
+                                    | instead of ntopng
+[--dont-change-user|-s]             | Do not change user (debug only)
+[--disable-purge]                   | Disable data purge (debug only)
+[--ciphers-list] <list>             | Specify the list of TLS ciphers to be used
+                                    | when https is used. Default: "HIGH:!aNULL:!MD5:!RC4"
+[--shutdown-when-done]              | Terminate after reading the pcap (debug only)
+[--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists)
+[--insecure]                        | Allow connections to TLS sites with invalid certificates
+[--zmq-encryption]                  | Enable ZMQ encryption with a custom key
+                                    | (encryption is enabled by default with a
+                                    | public fallback key, see note below)
+[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only)
+[--zmq-disable-encryption]          | Disable ZMQ encryption, which is enabled
+                                    | by default (accept cleartext ZMQ messages)
+[--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
+[--disable-autologout|-q]           | Disable web logout for inactivity
+[--disable-login|-l] <mode>         | Disable user login authentication:
+                                    | 0 - Disable login only for localhost
+                                    | 1 - Disable login for all hosts
+[--max-num-flows|-X] <num>          | Max number of active flows
+                                    | (default: 131072)
+[--max-num-hosts|-x] <num>          | Max number of active hosts
+                                    | (default: 131072)
+[--pcap-reforge-timestamps|-z]      | Reforge timestamps when reading from file
+[--users-file] <path>               | Users configuration file path
+                                    | Default: ntopng-users.conf
+[--original-speed]                  | Reproduce (-i) the pcap file at original speed
+[--log-labels}                      | Enable dump of host labels in /var/lib/ntopng/labels.log
+[--pid|-G] <path>                   | Pid file path
+[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)
+[--dump-flows|-F] <mode>            | Dump expired flows. Mode:
+                                    |
+                                    | es            Dump in ElasticSearch database
+                                    |   Format:
+                                    |   es;<mapping type>;<idx name>;<es URL>;<username>:<password>
+                                    |   Example:
+                                    |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd
+                                    |   Notes:
+                                    |   The <idx name> accepts the strftime() format.
+                                    |   <mapping type> must be set to ntopng and it is
+                                    |   used until ElasticSearch version 6 and ignored in newer versions.
+                                    |
+                                    | syslog        Dump in syslog
+                                    |   Format:
+                                    |   syslog[;<facility-text>]
+                                    |   Example:
+                                    |   syslog
+                                    |   syslog;local3
+                                    |   Notes:
+                                    |   <facility-text> is case-insensitive.
+                                    |
+                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL/XXL)
+                                    |   Format:
+                                    |   clickhouse;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>
+                                    |   Example:
+                                    |   clickhouse;127.0.0.1;ntopng;default;
+                                    |   You can also use just -F clickhouse as alias of:
+                                    |   -F "clickhouse;127.0.0.1@9000,9004;ntopng;default;"
+                                    |
+                                    | clickhouse-cluster    Dump in ClickHouse Cluster (Enterprise M/L/XL/XXL)
+                                    |   Format:
+                                    |   clickhouse-cluster;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>;<cluster name>
+                                    |   Example:
+                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster
+                                    |   You can also use just -F clickhouse-cluster as alias of:
+                                    |   -F "clickhouse-cluster;127.0.0.1@9000,9004;ntopng;default;ntop_cluster"
+                                    | NOTE:
+                                    | - tcp-port used by clickhouse-client
+                                    | - mysql-port used for queries
+                                    |
+                                    | clickhouse-cloud    Dump in ClickHouse Cloud (Enterprise M/L/XL/XXL)
+                                    |   Format:
+                                    |   clickhouse-cloud;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>;
+                                    |   Example:
+                                    |   clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password
+                                    | NOTE:
+                                    | - clickhouse-user used by clickhouse-client
+                                    | - mysql-user used for queries
+                                    | - tcp-port used by clickhouse-client
+                                    | - mysql-port used for queries
+                                    |
+                                    |
+                                    | kafka   Dump to Kafka (Enterprise M/L/XL/XXL)
+                                    |   Format:
+                                    |   kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+
+                                    |
+                                    |   Example:
+                                    |   "kafka;127.0.0.1;flows"
+                                    |   "kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip"
+                                    |
+                                    |   See at the bottom of this help the list of supported kafka configuration options.
+                                    |
+[--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
+                                    | Supported TS modes are:
+                                    | apcon - Timestamped pkts by apcon.com
+                                    |         hardware devices
+                                    | ixia  - Timestamped pkts by ixiacom.com
+                                    |         hardware devices
+                                    | vss   - Timestamped pkts by vssmonitoring.com
+                                    |         hardware devices
+[--capture-direction] <dir>         | Specify packet capture direction
+                                    | 0=RX+TX (default), 1=RX only, 2=TX only
+[--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.
+[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
+                                    | Useful when using ntopng behind a proxy.
+[--instance-name|-N <name>]         | Assign a name to this ntopng instance.
+[--community]                       | Start ntopng in community edition.
+[--fail-invalid-license]            | Exit without a valid license.
+[--check-license]                   | Check if the license is valid.
+[--check-maintenance]               | Check until maintenance is included
+                                    | in the license.
+[--version|-V]                      | Print version and license
+                                    | information, then quit
+[--version-json]                    | Print version and license
+                                    | info in JSON format, then quit
+[--verbose|-v] <level>              | Verbose tracing [range 0 (min).. 6 (max)]
+                                    | 0 - Errors only
+                                    | 1 - Warning
+                                    | 2 - Normal (default value)
+                                    | 3 - Informative
+                                    | 4 - Future use
+                                    | 5 - Future use
+                                    | 6 - Debug
+[--print-ndpi-protocols]            | Print the nDPI protocols list
+[--ignore-macs]                     | Ignore packets MAC addresses
+[--ignore-vlans]                    | Ignore packets VLAN tags
+[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)
+[--simulate-vlans]                  | Simulate VLAN traffic (debug only)
+[--simulate-macs]                   | Simulate MACs in the traffic (debug only)
+[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
+[--limit-resources]                 | Non-essential features are disabled
+                                    | in order to save memory and threads
+[--help|-h]                         | Help
+```
+
+Some of the most important parameters are briefly discussed here.
+
+`[--redis|-r] <redis host[:port][@db-id]>`
+
+> Ntopng uses Redis as a backend database to store user configuration and preferences. Redis must be started before ntopng. By default the location is `localhost` but this can be changed by specifying host and port where Redis is listening. In case multiple ntopng instances use same Redis server is it important, to prevent data from being overwritten, to specify the `"@db-id"` string to reserve a single Redis database to every ntopng instance.
+
+`[—interface|-i] <interface|pcap>`
+
+At the end of the help information there a list of all available interfaces. The user can select one or more interfaces from the list so that ntopng will treat them as monitored interfaces. Any traffic flowing though monitored interfaces will be seen and processed by ntopng. The interface is passed using the interface number (e.g., `-i 1`) on Windows systems, whereas the name is used on Linux / Unix systems (e.g., `-i eth0`). A monitoring session using multiple interfaces can be set up as follows:
+
+```bash
+ntopng -i eth0 -i eth1
+```
+
+To specify a ZMQ interface (that allows to visualize remotely-collected flows by nProbe and cento) you should add an interface like `ntopng -i tcp://<endpoint ip>/`
+
+An example of ntopng and nprobe communication is
+
+```bash
+nprobe -i eth0 -n none --zmq "tcp://*:5556"
+ntopng -i "tcp://<nprobe host ip>:5556"
+```
+
+It is also possible to operate ntopng in collector mode and nProbe in probe mode (this can be useful for example when nProbe is behind a NAT) as follows (note the trailing c after the collection port)
+
+```bash
+nprobe -i eth0 -n none --zmq-probe-mode --zmq "tcp://<ntopng host ip>:5556"
+ntopng -i "tcp://*:5556c"
+```
+
+::: info
+In ntopng 6.7.280831 and later, ZMQ CURVE encryption is enabled by default: ntopng no longer accepts
+cleartext ZMQ traffic out of the box. Until custom keys are configured with
+`--zmq-encryption` / `--zmq-encryption-key-priv`, ntopng and nProbe fall back to a
+public builtin key pair, which only prevents accidental cleartext exposure. Use `--zmq-disable-encryption`
+if you want to revert to the previous behavior and accept cleartext ZMQ messages (old deployments).
+:::
+
+ntopng is also able to compute statistics based on pcap traffic files:
+
+```bash
+ntopng -i /tmp/traffic.pcap
+```
+
+ntopng is also able (when PF_RING is used) to merge two interfaces into a single stream of traffic. This is useful for example when the two directions (TX+RX) of a network TAP need to be merged together. In this case, the interface name is the comma-separated concatenation of the two interface names that have to be merged, e.g.,
+
+```bash
+ntopng -i eth0,eth1
+```
+
+`[--http-prefix|-Z] <prefix>`
+
+> Network admins who want to monitor their network, may want to map ntopng web interface using a reverse proxy. The main issue with reverse proxying is that the ‘/‘ URI should not be mapped to the ntopng base. Customizable prefixes for the ntopng base can be chosen using the http-prefix option.
+>
+> Generally speaking, when the http-prefix is used, ntopng web interface is accessible by pointing the browser at `http://<host>:<port>/<prefix>/`
+>
+> For example, ntopng web interface can be accessed at `http://localhost:3000/myntopng` if it is executed as
+>
+> ```bash
+> ntopng -Z /myntopng
+> ```
+>
+> Using Apache, one would achieve the same behavior with the following http proxypass directives:
+>
+> ```bash
+> ProxyPass /myntopng/ http://192.168.100.3:3000/myntopng/
+> ProxyPassReverse /myntopng/ http://192.168.100.3:3000/myntopng/
+> ```
+
+`[--dns-mode|-n] <mode>`
+
+> This option controls the behavior of the name resolution done by ntopng. User can specify whether to use full resolution, local- or remote-only, or even no resolution at all.
+
+`[--data-dir|-d] <path>`
+
+> Ntopng uses a data directory to store several kinds of information. Most of the historical information related to hosts and applications is stored in this directory. Historical information includes round robin database (RRD) files for each application/host.
+
+`[--local-networks|-m] <local nets>`
+
+> > Ntopng characterizes networks in two categories, namely local and remote. Consequently, also hosts are characterized in either local or remote hosts. Every host that belongs to a local network is local. Similarly, every host that belongs to a remote network is remote.
+> >
+> > A great deal of information can be stored for local hosts, including their Layer-7 application protocols. However, additional information comes at the cost of extra memory and space used. Therefore, although a user would virtually want to mark all possible networks as local, in practice he/she will have to find a good tradeoff.
+> >
+> > Local networks can be specified as a comma separated list of IPv4 (IPv6) addresses and subnet masks or ASN (Authonomous Systems Number). For example to mark three networks as local ntopng can be executed as follows:
+> >
+> > ```bash
+> > ntopng --local-networks="192.168.2.0/24,10.0.0.0/8,8.8.8.0/24,asn1234"
+> > ```
+> >
+> > In the ntopng web interface, local networks and hosts are displayed with green colors while remote networks and hosts hosts with gray colors. Extra information will be available in the contextual menus for local networks.
+> >
+> > Note that you have the option to specify a configuration file that contains the list of networks. Example
+> >
+> > ```bash
+> > ntopng --local-networks=/etc/ntopng/localnetworks.txt
+> > ```
+>
+> The file format specifies multiple local networks split with commas or on multiple lines. Example:
+>
+> > ```bash
+> > 192.168.2.0/24=office,192.168.2.1/32,8.8.8.8/32
+> > asn5678
+> > 9.9.9.9/32
+> > 10.0.0.0/8
+> > ```
+
+`[--ciphers-list] <list>`
+
+> You can defined the ciphers list as you do with HTTP servers such Apache (see SSLCipherSuite in <https://httpd.apache.org/docs/trunk/en/ssl/ssl_howto.html>).
+
+`[—disable-login|-l]`
+
+> By default ntopng uses authentication method to access the web GUI. Authentication can be disabled by adding the option disable-login to the startup parameters. In this case any user who access the web interface has administrator privileges.
+>
+> As mentioned above, a configuration file can be used in order to start ntopng. All the command line options can be reported in the configuration file, one per line. Options must be separated from their values using a `=` sign. Comment lines starting with a `#` sign are allowed as well.
+
+`[--limit-resources]`
+
+> On systems with limited resources (CPU/RAM) you can use this flag to limit resouces usage. Some features such as network discovery or periodicity traffic analysis will be disabled.
+
+`[--offline]`
+
+> In case ntopng is placed in a protected environment (e.g. with a firewall limiting Internet connectivity) this can affect the ntopng performance and user experience. ntopng automatically tries to detect if there is limited connectivity, switching to *offline* mode. It is also possible to force the *offline* mode in ntopng by adding the `--offline` option. This mode will stop ntopng from contacing any external services. The list of IP/hosts contacted by ntopng when not offline includes:
+>
+> > github.com (for the connectivity check - this can be configured from Settings -> Preferences -> Misc)
+> >
+> > packages.ntop.org
+> >
+> > blog.ntop.org
+> >
+> > blacklists (those can be configured from Settings -> Category Lists)
+
+:::: warning
+Unlike its predecessor, ntopng is not itself a Netflow collector. It can act as Netflow collector combined with nProbe. To perform this connection start nProbe with the `--zmq` parameter and point ntopng interface parameter to the nProbe ZMQ endpoint. Using this configuration give the admin the possibility to use ntopng as collector GUI to display data either from nProbe captured traffic and Netflow enabled devices as displayed in the following picture.
+
+![ntopng/nprobe setup](../img/cli_options_ntopng_with_nprobe_architecture.png "ntopng/nprobe setup")
+::::
