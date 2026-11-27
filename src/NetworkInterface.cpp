@@ -5856,17 +5856,9 @@ static bool flow_matches(Flow* f, struct flowHostRetriever* retriever) {
       return (false);
 
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exporter Site ID: %u", f->getExporterSiteId());
-    if (retriever->pag && retriever->pag->siteIdFilter(&site_id)) {
-      struct ndpi_in6_addr addr = f->getExporterIP();
-
-      /* Precedence to exporter and fallback to flow source/destination */
-      if (!Utils::isNullAddress(&addr) &&
-          !(f->getExporterSiteId() == site_id))
-        return (false);
-      if (Utils::isNullAddress(&addr) &&
-          !(f->getSrcNetworkSiteId() == site_id || f->getDstNetworkSiteId() == site_id))
-        return (false);
-    }
+    if (retriever->pag && retriever->pag->siteIdFilter(&site_id) &&
+        !f->matchSite(site_id))
+      return (false);
 
     if (retriever->pag && retriever->pag->transitASFilter(&transit_as) &&
         !(f->getTransitASType() == transit_as))

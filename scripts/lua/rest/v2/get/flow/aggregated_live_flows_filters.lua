@@ -199,9 +199,7 @@ local function build_response(criteria)
     end 
     local rsp = {}
 
-    -- Host locality and site filters: only the per-host criteria has rows
-    -- describing a single host, so these are the only criteria where they are
-    -- meaningful (see host_locality/site_id in aggregated_live_flows.lua)
+    -- Host locality: only the per-host criteria has rows describing a single host
     if (criteria_type_id == 11 and ntop.isEnterpriseM()) then
         rsp[#rsp + 1] = {
             action = "host_locality",
@@ -221,9 +219,13 @@ local function build_response(criteria)
                 }
             }
         }
+    end
 
+    -- Site: per-host and client/server criteria (see site_id in aggregated_live_flows.lua)
+    if ((criteria_type_id == 4 or criteria_type_id == 11) and ntop.isEnterpriseM and ntop.isEnterpriseM()) then
         local sites_list = site_utils.getSites()
-        if table.len(sites_list) > 1 then
+        -- Shown with a single site too when it is set, so that it can be seen and removed
+        if (table.len(sites_list) > 1) or not isEmptyString(_GET["site_id"]) then
             local sites = {{key = "site_id", value = "-1", label = i18n("all")}}
 
             for _, site_info in pairsByField(sites_list, "name", asc) do

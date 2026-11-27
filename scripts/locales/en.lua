@@ -11544,6 +11544,7 @@ local lang = {
     ["timeseries_enabled"] = "Timeseries Enabled",
     ["top_applications"] = "Top Applications",
     ["top_conversations"] = "Top Conversations",
+    ["top_conversations_error"] = "Unable to load the top conversations.",
     ["top_hosts"] = "Top Hosts",
     ["top_l4_proto"] = "Top L4 Protocols",
     ["top_l7_proto"] = "Top Applications (by Traffic)",
