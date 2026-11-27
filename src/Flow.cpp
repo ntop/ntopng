@@ -3012,10 +3012,18 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       } else if (iface->hasMACs() && (!iface->isView()) &&
                  iface->isPacketInterface()) {
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        char buf[128];
+        /* This happens to all the flows created while the MACs hash is full
+         * (see NetworkInterface::getMac()): warn only once, as this runs
+         * inline with the packet processing */
+        static bool null_cli_mac_shown = false;
 
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL client MAC [%s]",
-                                     print(buf, sizeof(buf)));
+        if (!null_cli_mac_shown) {
+          char buf[128];
+
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL client MAC [%s]",
+                                       print(buf, sizeof(buf)));
+          null_cli_mac_shown = true;
+        }
 #endif
       }
 
@@ -3032,10 +3040,16 @@ void Flow::hosts_periodic_stats_update(NetworkInterface* iface, Host* cli_host,
       } else if (iface->hasMACs() && (!iface->isView()) &&
                  iface->isPacketInterface()) {
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        char buf[128];
+        /* Warn only once (see the client MAC above) */
+        static bool null_srv_mac_shown = false;
 
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL server MAC [%s]",
-                                     print(buf, sizeof(buf)));
+        if (!null_srv_mac_shown) {
+          char buf[128];
+
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "NULL server MAC [%s]",
+                                       print(buf, sizeof(buf)));
+          null_srv_mac_shown = true;
+        }
 #endif
       }
     }
