@@ -50,9 +50,8 @@ Data Retention
 ~~~~~~~~~~~~~~
 
 Retention is controlled by the *Timeseries Data Retention* preference (in days, default 365).
-The value is applied as a ClickHouse ``TTL`` clause on the ``timeseries`` table. When retention
-changes, the table DDL is re-issued with the new TTL and ClickHouse handles background cleanup
-automatically — no manual purge is required.
+ntopng drops the daily partitions older than the retention period, so a change of the preference
+applies to the data already stored too: no manual purge is required.
 
 Database Schema
 ---------------
@@ -60,22 +59,24 @@ Database Schema
 Table Definition
 ~~~~~~~~~~~~~~~~
 
-On first startup (or when the retention period changes), ntopng creates the following table
-in the configured ClickHouse database (default: ``ntopng``):
+On first startup, ntopng creates the following table in the configured ClickHouse database
+(default: ``ntopng``):
 
 .. code-block:: sql
 
    CREATE TABLE IF NOT EXISTS `ntopng`.`timeseries`
    (
-       `schema_name`  LowCardinality(String),
-       `tstamp`       DateTime CODEC(Delta, ZSTD),
-       `tags`         Map(LowCardinality(String), String),
-       `metrics`      Map(LowCardinality(String), Float64)
+       `schema_name`          LowCardinality(String),
+       `ifid`                 Int16,
+       `ntopng_instance_name` LowCardinality(String),
+       `tstamp`               DateTime CODEC(Delta, ZSTD),
+       `tags`                 Map(LowCardinality(String), String),
+       `metrics`              Map(LowCardinality(String), Float64),
+       `entity`               String
    )
    ENGINE = MergeTree()
-   PARTITION BY toYYYYMM(tstamp)
-   ORDER BY (schema_name, tstamp)
-   TTL tstamp + toIntervalDay(<retention_days>)
+   PARTITION BY toYYYYMMDD(tstamp)
+   ORDER BY (schema_name, ifid, entity, tstamp)
 
 Column Details
 ~~~~~~~~~~~~~~
@@ -84,6 +85,12 @@ Column Details
   Identifies the type of measurement, e.g. ``iface:traffic``, ``host:traffic``,
   ``interface:ndpi``. Using ``LowCardinality`` avoids redundant string storage for the small
   set of distinct schema identifiers.
+
+``ifid`` (``Int16``)
+  The interface of the data point, the same value of the ``ifid`` tag.
+
+``ntopng_instance_name`` (``LowCardinality(String)``)
+  The name of the ntopng instance that wrote the data point.
 
 ``tstamp`` (``DateTime CODEC(Delta, ZSTD)``)
   Unix timestamp of the data point. The Delta codec stores differences between consecutive
@@ -99,13 +106,39 @@ Column Details
   etc.); values are ``Float64`` measurements.
   Example: ``{'bytes': 1048576.0, 'packets': 1024.0}``.
 
+``entity`` (``String``)
+  The values of the tags after ``ifid``, in the order defined by the schema, separated by the
+  ``\x1F`` character. Example: ``192.168.1.1\x1FDNS`` for the ``host:ndpi`` schema
+  (host ``192.168.1.1``, protocol DNS), empty for the interface schemas.
+
 Partitioning and Ordering
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Data is partitioned monthly (``toYYYYMM(tstamp)``), which allows ClickHouse to prune entire
+Data is partitioned daily (``toYYYYMMDD(tstamp)``), which allows ClickHouse to prune entire
 partitions when querying a specific time range. Within each partition, rows are sorted by
-``(schema_name, tstamp)``, optimising the most common query pattern: filter by schema, scan
-a time range.
+``(schema_name, ifid, entity, tstamp)``: the rows of one entity are contiguous, so a chart of a
+single host, ASN or device reads only its rows. A query that gives only the first tags of a
+schema (e.g. the top protocols of a host) reads only the rows of that prefix of the entity.
+
+Upgrading a Table Created by an Older Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A table created by an older version of ntopng is sorted by ``(schema_name, ifid, tstamp)``:
+a chart of a single entity reads the rows of all the entities of its schema. ntopng adds the
+``entity`` column to such a table, but ClickHouse cannot change the sort order of an existing
+table, so the charts keep reading as before.
+
+To move the table to the new sort order, an administrator clicks *Upgrade at Next Restart* in the
+*Timeseries Table Upgrade* notification, then restarts ntopng. At the next startup ntopng:
+
+1. checks that ClickHouse has free disk space for a copy of the table (1.2 times its size);
+2. copies the data, one day at a time, to a new table with the new sort order;
+3. checks that every row was copied, then exchanges the two tables and drops the old data.
+
+The upgrade can take several minutes (about one minute every 70 million rows): meanwhile the
+traffic is not recorded and the GUI is not available, the progress is reported in the ntopng log.
+If any step fails, the old table is left unchanged and the notification reports the error. The
+exchange of the tables requires the ``Atomic`` database engine, the ClickHouse default.
 
 Query Behaviour
 ---------------

@@ -8594,6 +8594,17 @@ local lang = {
     ["columns_hint"] = "Click a column to add it to the query",
     ["columns_load_failed"] = "Cannot load the columns of the table",
   },
+  ["clickhouse_ts_migration"] = {
+    ["action"] = "Upgrade at Next Restart",
+    ["confirm_message"] = "The upgrade runs at the next restart of %{product} and can take several minutes: meanwhile the traffic is not recorded and the GUI is not available. It needs free disk space for 1.2 times the size of the timeseries table.",
+    ["confirm_title"] = "Upgrade the Timeseries Table",
+    ["description"] = "The ClickHouse timeseries table was created by an older version of %{product}: the charts of a single host, ASN or device read the data of all of them. The upgrade moves the table to the new structure at the next restart. It can take several minutes: meanwhile the traffic is not recorded and the GUI is not available.",
+    ["last_failed"] = "The last upgrade failed and the table was not changed: %{message}.",
+    ["request_error"] = "Unable to schedule the upgrade of the timeseries table.",
+    ["requested"] = "The upgrade of the ClickHouse timeseries table runs at the next restart of %{product}. It can take several minutes: meanwhile the traffic is not recorded and the GUI is not available.",
+    ["requested_ok"] = "Upgrade scheduled: it runs at the next restart.",
+    ["title"] = "Timeseries Table Upgrade",
+  },
   ["manage_data"] = {
     ["all_hosts"] = "All",
     ["delete"] = "Purge Host Data",

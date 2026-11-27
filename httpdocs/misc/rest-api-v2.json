@@ -12850,6 +12850,34 @@
         }
       }
     },
+    "/lua/rest/v2/edit/ntopng/clickhouse_ts_migration.lua": {
+      "post": {
+        "tags": [
+          "Configuration"
+        ],
+        "summary": "Upgrade the ClickHouse timeseries table at the next restart",
+        "description": "Schedule the upgrade of a ClickHouse timeseries table created by an older version to the new structure (sort key with the entity). The upgrade runs at the next restart of ntopng: it can take several minutes, during which the traffic is not recorded. Administrators only.",
+        "operationId": "edit_ntopng_clickhouse_ts_migration",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
+          },
+          "-8": {
+            "description": "BAD_CONTENT (the table does not need the upgrade)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/edit/ntopng/user.lua": {
       "post": {
         "tags": [

@@ -110,6 +110,9 @@ local function validateTagMetric(name)
   return(true)
 end
 
+-- Note: do not change the order of the tags of an existing schema. The ClickHouse driver stores
+-- the values of the tags after ifid in this order (the entity column of its sort key): the rows
+-- written before the change would not match the queries anymore
 function ts_schema:addTag(name)
   if not validateTagMetric(name) then
     return

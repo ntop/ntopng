@@ -4,6 +4,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/drivers/?.lua;" .. package.path
 
 local pools = require("pools")
 local check_utils = require("checks")
@@ -803,6 +805,52 @@ function predicates.influxdb_deprecated(toast, container)
 
     container[#container + 1] = toast_ui:new(toast.id, i18n("influxdb_deprecated_title"),
         i18n("influxdb_deprecated_warning"), ToastLevel.WARNING, action, toast.dismissable)
+end
+
+--- ClickHouse timeseries table created before the entity column: propose its upgrade at the next restart
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.clickhouse_ts_migration(toast, container)
+    if not IS_ADMIN then
+        return
+    end
+
+    -- Redis keys only: this runs on every page
+    local state = require("clickhousets").getEntityMigrationState()
+
+    if not state.old_table then
+        return
+    end
+
+    if state.requested then
+        container[#container + 1] = create_restart_required_toast(toast, i18n("clickhouse_ts_migration.requested", {
+            product = info.product
+        }))
+        return
+    end
+
+    local description = i18n("clickhouse_ts_migration.description", { product = info.product })
+
+    if state.last and not state.last.success then
+        require "gui_utils"
+        description = description .. " " .. i18n("clickhouse_ts_migration.last_failed", {
+            message = safeHtml(state.last.message)
+        })
+    end
+
+    local action = {
+        url = "#",
+        title = i18n("clickhouse_ts_migration.action"),
+        additional_classes = "clickhouse-ts-migration",
+        dialog = {
+            title = i18n("clickhouse_ts_migration.confirm_title"),
+            message = i18n("clickhouse_ts_migration.confirm_message", { product = info.product }),
+            err_msg = i18n("clickhouse_ts_migration.request_error"),
+        },
+    }
+
+    container[#container + 1] = toast_ui:new(toast.id, i18n("clickhouse_ts_migration.title"), description,
+        ToastLevel.WARNING, action, toast.dismissable)
 end
 
 --- This is a simple placeholder for new toasts
