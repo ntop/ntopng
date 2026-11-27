@@ -39,9 +39,9 @@ void Fingerprint::update(const char* _fprint, const char* app_name,
     s.is_malicious = is_malicious;
     fp[fprint] = s;
   } else {
-    it->second.num_uses++,
-        it->second.app_name = std::string(
-            app_name ? app_name : "", it->second.is_malicious = is_malicious);
+    it->second.num_uses++;
+    it->second.app_name = std::string(app_name ? app_name : "");
+    it->second.is_malicious = is_malicious;
   }
 
   m.unlock(__FILE__, __LINE__);
@@ -98,5 +98,16 @@ void Fingerprint::prune() {
     for (std::vector<std::string>::iterator it1 = dropper.begin();
          it1 != dropper.end(); ++it1)
       fp.erase(*it1);
+
+    /* All the entries may be used 3+ times: drop the least used ones,
+       otherwise the table grows without limit */
+    while (fp.size() > MAX_NUM_FINGERPRINT) {
+      std::map<std::string, FingerprintStats>::iterator least_used = fp.begin();
+
+      for (it = fp.begin(); it != fp.end(); ++it)
+        if (it->second.num_uses < least_used->second.num_uses) least_used = it;
+
+      fp.erase(least_used);
+    }
   }
 }
