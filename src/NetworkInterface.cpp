@@ -397,7 +397,12 @@ void NetworkInterface::init(const char* interface_name) {
 #endif
 #endif
 #ifdef NTOPNG_PRO
-  dhcp_last_sec_pkts = 0, last_sec_epoch = 0;
+  dhcp_storm.epoch = dhcp_storm.num_pkts = 0;
+  dhcp_storm.num_requests = dhcp_storm.num_replies = 0;
+  dhcp_storm.sender_votes = dhcp_storm.sender_pkts = 0;
+  dhcp_storm.sender_vlan_id = 0;
+  memset(dhcp_storm.sender_mac, 0, sizeof(dhcp_storm.sender_mac));
+  ndpi_hll_init(&dhcp_storm.client_macs, 8 /* StdError: 6.5% */);
 #endif
 
   dhcp_ranges = dhcp_ranges_shadow = NULL;
@@ -1115,6 +1120,10 @@ NetworkInterface::~NetworkInterface() {
 
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+
+#ifdef NTOPNG_PRO
+  ndpi_hll_destroy(&dhcp_storm.client_macs);
+#endif
 
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
@@ -2550,6 +2559,11 @@ pre_get_flow:
       case NDPI_PROTOCOL_DHCP:
         if (trusted_payload_len > 240) {
           struct dhcp_packet* dhcpp = (struct dhcp_packet*)payload;
+
+#ifdef NTOPNG_PRO
+          checkDHCPStorm(when->tv_sec, 1, eth->h_source, &src_ip, vlan_id,
+                         dhcpp->msgType, dhcpp->chaddr);
+#endif
           /* The DHCP client: the MAC address in the payload (chaddr), not the
            * destination of the packet (the DHCP server for a request sent to
            * it). NOTE: no MAC addresses on viewed interfaces */
@@ -12644,28 +12658,72 @@ int NetworkInterface::walkActiveHosts(
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
-  if (last_sec_epoch == (u_int32_t)when)
-    dhcp_last_sec_pkts += num_pkts;
-  else {
-    if (dhcp_last_sec_pkts > DHCP_STORM_PPS_THSHOLD) {
-      char value[32], key[32];
+void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts,
+                                      const u_int8_t* sender_mac,
+                                      IpAddress* sender_ip, u_int16_t vlan_id,
+                                      u_int8_t bootp_op,
+                                      const u_int8_t* client_mac) {
+  if (dhcp_storm.epoch != (u_int32_t)when) {
+    /* A new second: check the previous one */
+    if (dhcp_storm.num_pkts > DHCP_STORM_PPS_THSHOLD) {
+      char value[512], key[32], mac_buf[24], ip_buf[64];
+      /* The candidate is the main sender only when it sent the majority of
+       * the packets (sender_pkts is a lower bound of its packets) */
+      bool main_sender = (dhcp_storm.sender_pkts * 2 > dhcp_storm.num_pkts);
 
-#ifdef DEBUG
-      ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "DHCP [iface: %d][when: %u][total: %u]", get_id(),
-          last_sec_epoch, dhcp_last_sec_pkts);
-#endif
-
-      /* Queue alert for the DHCP storm plugin */
       snprintf(key, sizeof(key), DHCP_STORM_QUEUE_NAME, get_id());
+      snprintf(value, sizeof(value),
+               "{\"epoch\":%u,\"num_pkts\":%u,\"num_requests\":%u,"
+               "\"num_replies\":%u,\"num_client_macs\":%u,"
+               "\"sender_mac\":\"%s\",\"sender_ip\":\"%s\","
+               "\"sender_vlan_id\":%u,\"sender_pkts\":%u}",
+               dhcp_storm.epoch, dhcp_storm.num_pkts, dhcp_storm.num_requests,
+               dhcp_storm.num_replies,
+               (u_int32_t)ndpi_hll_count(&dhcp_storm.client_macs),
+               main_sender ? Utils::formatMac(dhcp_storm.sender_mac, mac_buf,
+                                              sizeof(mac_buf))
+                           : "",
+               /* No IP for a client without an address (0.0.0.0) */
+               (main_sender && !dhcp_storm.sender_ip.isEmpty())
+                   ? dhcp_storm.sender_ip.print(ip_buf, sizeof(ip_buf))
+                   : "",
+               main_sender ? dhcp_storm.sender_vlan_id : 0,
+               main_sender ? dhcp_storm.sender_pkts : 0);
 
-      snprintf(value, sizeof(value), "%u;%u", last_sec_epoch,
-               dhcp_last_sec_pkts);
+      /* Queue alert for the DHCP storm check */
       ntop->getRedis()->rpush(key, value, 32 /* trim size */);
     }
 
-    last_sec_epoch = when, dhcp_last_sec_pkts = num_pkts; /* Reset counter */
+    dhcp_storm.epoch = when, dhcp_storm.num_pkts = 0;
+    dhcp_storm.num_requests = dhcp_storm.num_replies = 0;
+    dhcp_storm.sender_votes = dhcp_storm.sender_pkts = 0;
+    ndpi_hll_reset(&dhcp_storm.client_macs);
+  }
+
+  dhcp_storm.num_pkts += num_pkts;
+
+  if (bootp_op == 0x01 /* BOOTREQUEST */)
+    dhcp_storm.num_requests += num_pkts;
+  else if (bootp_op == 0x02 /* BOOTREPLY */)
+    dhcp_storm.num_replies += num_pkts;
+
+  if (client_mac) ndpi_hll_add(&dhcp_storm.client_macs, (const char*)client_mac, 6);
+
+  if (sender_mac) {
+    /* Weighted Boyer-Moore majority vote */
+    if ((dhcp_storm.sender_votes > 0) &&
+        (memcmp(dhcp_storm.sender_mac, sender_mac, 6) == 0) &&
+        (dhcp_storm.sender_vlan_id == vlan_id))
+      dhcp_storm.sender_votes += num_pkts, dhcp_storm.sender_pkts += num_pkts;
+    else if (dhcp_storm.sender_votes > num_pkts)
+      dhcp_storm.sender_votes -= num_pkts;
+    else {
+      memcpy(dhcp_storm.sender_mac, sender_mac, 6);
+      dhcp_storm.sender_ip.set(sender_ip);
+      dhcp_storm.sender_vlan_id = vlan_id;
+      dhcp_storm.sender_votes = num_pkts - dhcp_storm.sender_votes;
+      dhcp_storm.sender_pkts = num_pkts;
+    }
   }
 }
 #endif
@@ -15051,11 +15109,6 @@ void NetworkInterface::incStats(bool ingressPacket, time_t when,
   l4Stats.incStats(when, l4proto, ingressPacket ? num_pkts : 0,
                    ingressPacket ? pkt_len : 0, !ingressPacket ? num_pkts : 0,
                    !ingressPacket ? pkt_len : 0);
-#endif
-
-#ifdef NTOPNG_PRO
-  /* Added DHCP storm detection */
-  if (ndpi_proto == NDPI_PROTOCOL_DHCP) checkDHCPStorm(when, num_pkts);
 #endif
 
   if (src_mac) src_mac->incSentStats(when, 1, pkt_len);

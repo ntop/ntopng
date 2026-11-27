@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "Conexão/disco MAC inesperada.",
     ["dhcp_storm"] = "Tempestade DHCP",
     ["dhcp_storm_description"] = "Acionar um alerta quando um ataque DHCP Storm for detectado",
-    ["dhcp_storm_detected_description"] = "Ataque DHCP Storm detectado em %{epoch} [Pacotes DHCP: %{dhcp_num_pkts}]",
     ["disk_space_low"] = "Pouco espaço em disco",
     ["disk_space_low_descr"] = "A porcentagem máxima de uso de espaço em disco. Quando o espaço usado no volume de dados ntopng (ou no volume de gravação de tráfego separado, quando configurado) excede esse limite, um alerta é acionado",
     ["dns_anomaly"] = "Anomalia de DNS",

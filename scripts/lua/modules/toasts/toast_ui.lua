@@ -64,6 +64,7 @@ local ACTION_TYPES = {
    ["toast-config-change-flows"] = "incr_flows",
    ["toast-config-change-hosts"] = "incr_hosts",
    ["restart-service"] = "restart",
+   ["clickhouse-ts-migration"] = "clickhouse_ts_migration",
 }
 
 -- Plain table of the toast, to be sent to the PageToasts Vue component (see toasts_manager.render_toasts)

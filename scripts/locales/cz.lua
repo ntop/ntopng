@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "Neočekávané připojení MAC/Disk.",
     ["dhcp_storm"] = "DHCP Storm",
     ["dhcp_storm_description"] = "Spustit výstrahu, když je detekován útok DHCP Storm",
-    ["dhcp_storm_detected_description"] = "Útok DHCP Storm detekován na %{epoch} [DHCP Packets: %{dhcp_num_pkts}]",
     ["disk_space_low"] = "Málo místa na disku",
     ["disk_space_low_descr"] = "Maximální procento využití místa na disku. Když využitý prostor na objemu dat ntopng (nebo na samostatném svazku pro záznam provozu, je-li nakonfigurován) překročí tento práh, spustí se výstraha",
     ["dns_anomaly"] = "DNS Anomaly",

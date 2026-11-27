@@ -31,6 +31,8 @@ struct CHTSPoint {
   std::string schema_name;
   time_t tstamp;
   int16_t ifid; /* Same as tags['ifid'] (optimization for queries) */
+  std::string entity; /* Values of the tags after ifid in schema order (table sort key) */
+  bool has_entity = false; /* false: the table has no entity column, the point is written without it */
   std::vector<std::pair<std::string, std::string>> tags;
   std::vector<std::pair<std::string, double>> metrics;
 };

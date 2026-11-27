@@ -68,10 +68,8 @@ int pthread_create(pthread_t *threadId, void* notUsed, void *(*__start_routine) 
 			     0,            /* use default creation flags */
 			     &dwThreadId); /* returns the thread identifier */
 
-  if(*threadId != NULL)
-    return(1);
-  else
-    return(0);
+  /* POSIX semantics: 0 on success (callers check == 0) */
+  return((*threadId != NULL) ? 0 : (int)GetLastError());
 }
 
 /* ************************************ */

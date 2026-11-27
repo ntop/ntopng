@@ -108,6 +108,15 @@ bool CHTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   lua_table_to_vector<std::string>(vm, 3, point->tags, lua_val_to_string);
   lua_table_to_vector<double>(vm, 4, point->metrics, lua_val_to_double);
   point->ifid = (int16_t)lua_tonumber(vm, 5);
+
+  /* entity: optional, built by the Lua driver from the schema tags */
+  if (lua_type(vm, 6) == LUA_TSTRING) {
+    size_t len;
+    const char* entity = lua_tolstring(vm, 6, &len);
+
+    point->entity.assign(entity, len);
+    point->has_entity = true;
+  }
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queueing [Timeseries: %s][ifid: %d]", point->schema_name.c_str(), point->ifid);
 
   if (!ts_queue->enqueue(point)) {

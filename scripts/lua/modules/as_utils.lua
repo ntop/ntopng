@@ -116,6 +116,22 @@ local function formatHistoricalASNFilters(options)
 end
 
 ---
+-- Formats the WHERE clause of the historical flows: time range, interface and interface role
+-- (as for live flows, a flow matches a role if either its input or output interface does)
+-- @param options Table containing epoch_begin, epoch_end, ifid and interface_role
+-- @return string SQL condition on the flows table
+local function formatHistoricalFlowsWhere(options)
+    local filter_options = as_utils.formatFilters(options)
+    local interface_role_filter = ""
+    if (filter_options.interfaceRole) then
+        interface_role_filter = string.format(" AND (INPUT_INTERFACE_ROLE = %u OR OUTPUT_INTERFACE_ROLE = %u)",
+            filter_options.interfaceRole, filter_options.interfaceRole)
+    end
+    return string.format("(FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) AND INTERFACE_ID = %u %s",
+        tonumber(options.epoch_begin), tonumber(options.epoch_end), tonumber(options.epoch_end), tonumber(options.ifid), interface_role_filter)
+end
+
+---
 -- Aggregates raw query rows (grouped by asn, INTERFACE_ROLE) into a single entry per ASN.
 -- @param historical_asn_stats Table of rows as returned by the ClickHouse query
 -- @return table ASN statistics keyed by ASN number (string)
@@ -529,11 +545,13 @@ function as_utils.retrieveASLiveTraffic(options)
             invert = true -- "other_as" means NOT in configured ASNs
         end
 
-        -- Filter ASNs based on selection
-        for asn, as_info in pairs(asn_stats) do
-            local present = check_as[asn] ~= nil
-            if present == invert then
-                asn_stats[asn] = nil
+        -- Filter ASNs based on selection ("transit_as" has a table of its own, see retrieveTransitASLiveTraffic)
+        if check_as then
+            for asn, as_info in pairs(asn_stats) do
+                local present = check_as[asn] ~= nil
+                if present == invert then
+                    asn_stats[asn] = nil
+                end
             end
         end
     end
@@ -578,18 +596,8 @@ function as_utils.retrieveASHistoricalTraffic(options)
             string.format("[ASN Profiling][Time: %s] Start request to DB (Historical)\n", os.time()))
     end
 
-    -- Before getting the data, format the paginator, to filter flows
-    -- (as for live flows, a flow matches a role if either its input or output interface does)
-    local filter_options = as_utils.formatFilters(options)
-    local interface_role_filter = ""
-    if (filter_options.interfaceRole) then
-        interface_role_filter = string.format(" AND (INPUT_INTERFACE_ROLE = %u OR OUTPUT_INTERFACE_ROLE = %u)",
-            filter_options.interfaceRole, filter_options.interfaceRole)
-    end
     local asn_filters = formatHistoricalASNFilters(options)
-    -- Build WHERE clause for time range and interface
-    local where = string.format("(FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) AND INTERFACE_ID = %u %s",
-        tonumber(options.epoch_begin), tonumber(options.epoch_end), tonumber(options.epoch_end), tonumber(options.ifid), interface_role_filter)
+    local where = formatHistoricalFlowsWhere(options)
 
     -- Same as Flow::getMainRole(): the input role if meaningful, otherwise the output one
     local interface_role = string.format(
@@ -736,6 +744,71 @@ function as_utils.getTopASHistorical(options)
     end
 
     return asn_tops
+end
+
+---
+-- Retrieves the live traffic of the transit ASNs (peer ASN of a flow endpoint other than the
+-- ASN of the endpoint itself), per destination ASN
+-- @param options Table containing filtering options (interface_role)
+-- @return table Array of { transit_asn, dst_asn, traffic, transit_traffic } (transit_traffic: total of the transit ASN)
+function as_utils.retrieveTransitASLiveTraffic(options)
+    local live_asn_info = interface.getLiveASNStats(as_utils.formatFilters(options)) or {}
+    local rows = {}
+
+    for transit_asn, destinations in pairs(live_asn_info["transit_asn"] or {}) do
+        local transit_traffic = 0
+        for _, bytes in pairs(destinations) do
+            transit_traffic = transit_traffic + bytes
+        end
+
+        for dst_asn, bytes in pairs(destinations) do
+            rows[#rows + 1] = {
+                transit_asn = tonumber(transit_asn),
+                dst_asn = tonumber(dst_asn),
+                traffic = bytes,
+                transit_traffic = transit_traffic,
+            }
+        end
+    end
+
+    return rows
+end
+
+---
+-- Retrieves the historical traffic of the transit ASNs, per destination ASN, from ClickHouse
+-- (same definition of transit ASN as retrieveTransitASLiveTraffic)
+-- @param options Table containing filtering options (epoch_begin, epoch_end, ifid, interface_role)
+-- @return table Array of { transit_asn, dst_asn, traffic, transit_traffic }
+function as_utils.retrieveTransitASHistoricalTraffic(options)
+    -- A flow counts for its source and for its destination transit ASN (once if they are the same):
+    -- flows without a transit ASN have an empty array and are dropped by the ARRAY JOIN
+    local query = string.format(
+        "SELECT transit_asn, DST_ASN AS dst_asn, sum(TOTAL_BYTES) AS traffic, " ..
+            "sum(sum(TOTAL_BYTES)) OVER (PARTITION BY transit_asn) AS transit_traffic " ..
+            "FROM (SELECT SRC_ASN, DST_ASN, SRC_PEER_ASN, DST_PEER_ASN, TOTAL_BYTES FROM flows WHERE %s) " ..
+            "ARRAY JOIN arrayDistinct(arrayFilter(x -> x != 0, " ..
+            "[if(SRC_PEER_ASN != SRC_ASN, SRC_PEER_ASN, 0), if(DST_PEER_ASN != DST_ASN, DST_PEER_ASN, 0)])) AS transit_asn " ..
+            "GROUP BY transit_asn, dst_asn",
+        formatHistoricalFlowsWhere(options))
+    return interface.execSQLQuery(query) or {}
+end
+
+---
+-- Adds the role flags and the category (ASN Configuration) of an ASN to a record
+-- (read by FormatterUtils.formatAsConfigurationIcons)
+-- @param record The table where the flags are added
+-- @param asn The ASN number (string or number)
+function as_utils.addASNConfiguration(record, asn)
+    local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
+    asn = tostring(asn)
+    if customer_asn[asn] then
+        record.is_customer_asn = true
+    elseif sub_customer_asn[asn] then
+        record.is_sub_customer_asn = true
+    elseif remote_asn[asn] then
+        record.is_remote_asn = true
+    end
+    record.asn_category = as_utils.getASNCategory(asn)
 end
 
 return as_utils

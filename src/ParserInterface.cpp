@@ -957,6 +957,12 @@ bool ParserInterface::processFlow(ParsedFlow* zflow) {
     }
   }
 
+#ifdef NTOPNG_PRO
+  /* DHCP storm detection (note: DHCP message type is not exported) */
+  if (flow->getStatsProtocol() == NDPI_PROTOCOL_DHCP)
+    checkDHCPStorm(now, in_pkts + out_pkts, zflow->src_mac, &srcIP,
+                   zflow->vlan_id, 0 /* Unknown BOOTP op */, NULL);
+#endif
 
 #ifdef NTOPNG_PRO
   /* Check if direct flow dump is enabled */

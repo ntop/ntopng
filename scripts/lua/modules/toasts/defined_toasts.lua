@@ -339,6 +339,17 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        -- Not dismissable: closed by hand it is shown again at the next full page load, until the upgrade
+        id = 34,
+        dismissable = false,
+        has_priority = true,
+        predicate = predicates.clickhouse_ts_migration,
+        pages = EMPTY_PAGES,
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats

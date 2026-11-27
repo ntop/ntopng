@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "予期しないMAC接続/切断",
     ["dhcp_storm"] = "DHCPストーム",
     ["dhcp_storm_description"] = "DHCPストーム攻撃が検出された場合にアラートをトリガーします。",
-    ["dhcp_storm_detected_description"] = "DHCP Storm攻撃が %{epoch} に検出されました [DHCPパケット数: %{dhcp_num_pkts}]。",
     ["disk_space_low"] = "ディスク容量が少ない",
     ["disk_space_low_descr"] = "最大ディスクスペース使用率。 ntopng データ ボリューム (または構成されている場合は別のトラフィック記録ボリューム) の使用済みスペースがこのしきい値を超えると、アラートがトリガーされます。",
     ["dns_anomaly"] = "DNS異常",

@@ -172,7 +172,15 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
 
 #if defined(NTOPNG_PRO)
   /* Logic for detecting packet protocol storms */
-  u_int32_t dhcp_last_sec_pkts, last_sec_epoch;
+  struct {
+    /* Counters of the current second. Main sender MAC detected with Boyer-Moore majority vote */
+    u_int32_t epoch, num_pkts, num_requests, num_replies;
+    u_int8_t sender_mac[6];
+    IpAddress sender_ip;
+    u_int16_t sender_vlan_id;
+    u_int32_t sender_votes, sender_pkts;
+    struct ndpi_hll client_macs; /* Distinct DHCP client MACs */
+  } dhcp_storm;
 
   time_t nextMinPeriodicUpdate, next5MinPeriodicUpdate;
   /* Behavioural analysis regarding the interface */
@@ -459,7 +467,10 @@ class NetworkInterface : public NetworkInterfaceAlertableEntity {
   void loadProtocolsAssociations(struct ndpi_detection_module_struct* ndpi_str);
 
 #ifdef NTOPNG_PRO
-  void checkDHCPStorm(time_t when, u_int32_t num_pkts);
+  void checkDHCPStorm(time_t when, u_int32_t num_pkts,
+                      const u_int8_t* sender_mac, IpAddress* sender_ip,
+                      u_int16_t vlan_id, u_int8_t bootp_op,
+                      const u_int8_t* client_mac);
 #endif
   void lua_push_ports(lua_State* vm, HostsPorts* count, u_int16_t protocol);
   void sort_hosts_details(lua_State* vm, HostsPortsAnalysis* count,

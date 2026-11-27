@@ -29,11 +29,27 @@ local CH_TS_KEY_PREFIX         = "ntopng.cache.clickhouse_ts."
 local CH_LAST_ERROR_KEY        = CH_TS_KEY_PREFIX .. "last_error"
 local CH_EXPORTED_POINTS_KEY   = CH_TS_KEY_PREFIX .. "exported_points"
 local CH_FAILED_EXPORTS_KEY    = CH_TS_KEY_PREFIX .. "failed_exports"
+-- "1" when the table sort key has the entity column (set by driver:setup)
+local CH_ENTITY_SORT_KEY       = CH_TS_KEY_PREFIX .. "entity_sort_key"
+-- "0" when the table has no entity column (it could not be added): the points are written without it
+local CH_ENTITY_COLUMN_KEY     = CH_TS_KEY_PREFIX .. "entity_column"
+-- "1": move a table created before the entity column to the new sort key at the next startup
+local CH_MIGRATION_REQUEST_KEY = CH_TS_KEY_PREFIX .. "migration_request"
+-- JSON { success, message, epoch, duration } of the last migration
+local CH_MIGRATION_STATUS_KEY  = CH_TS_KEY_PREFIX .. "migration_status"
 
 -- Table and batching settings
 local CH_TS_TABLE_NAME = "timeseries"
+-- Filled by the migration, then exchanged with the timeseries table
+local CH_TS_MIGRATION_TABLE_NAME = "timeseries_new"
+-- Free disk needed by the migration, times the size of the table: the copy and its merges
+local MIGRATION_DISK_MARGIN = 1.2
 
 local CH_BATCH_SIZE = tonumber(ntop.getPref("ntopng.prefs.clickhouse_ts_batch_size")) or 10000
+
+-- The entity column chains the values of the tags after ifid, in schema order
+-- (e.g. host, protocol): a control character, not expected in a tag value
+local ENTITY_SEPARATOR = "\31"
 
 -- ##############################################
 
@@ -89,15 +105,98 @@ local function ch_escape(s)
    return s
 end
 
+-- Schema name -> its tags after ifid, in schema order (computed once per schema)
+local entity_tags_by_schema = {}
+-- Reused by every append: no table per point
+local entity_values = {}
+
+local function entity_tags(schema)
+   local entity_tags = entity_tags_by_schema[schema.name]
+
+   if not entity_tags then
+      entity_tags = {}
+
+      for _, tag in ipairs(schema._tags) do
+         if tag ~= "ifid" then
+            entity_tags[#entity_tags + 1] = tag
+         end
+      end
+
+      entity_tags_by_schema[schema.name] = entity_tags
+   end
+
+   return entity_tags
+end
+
+-- nil until read: the columns and the sort key of the table do not change while ntopng runs
+local entity_column = nil
+local entity_in_sort_key = nil
+
+-- An insert with a column the table does not have fails: no entity when it could not be added
+local function has_entity_column()
+   if entity_column == nil then
+      entity_column = (ntop.getCache(CH_ENTITY_COLUMN_KEY) ~= "0")
+   end
+
+   return entity_column
+end
+
+local function is_entity_in_sort_key()
+   if entity_in_sort_key == nil then
+      entity_in_sort_key = (ntop.getCache(CH_ENTITY_SORT_KEY) == "1")
+   end
+
+   return entity_in_sort_key
+end
+
+-- Condition on the entity column for the leading entity tags of the schema found in tags:
+-- all of them select one entity, only the first ones a prefix (e.g. a host with all its protocols)
+local function entity_where(schema, tags)
+   local schema_entity_tags = entity_tags(schema)
+   local values = {}
+
+   for _, tag in ipairs(schema_entity_tags) do
+      local value = tags[tag]
+
+      if value == nil then
+         break
+      end
+
+      values[#values + 1] = ch_escape(value)
+   end
+
+   if #values == 0 then
+      return nil
+   end
+
+   local entity = table.concat(values, "\\x1F")
+
+   if #values == #schema_entity_tags then
+      return string.format("entity = '%s'", entity)
+   end
+
+   return string.format("startsWith(entity, '%s\\x1F')", entity)
+end
+
 -- Build WHERE conditions for the supplied tags table.
 -- Note: ifid is materialised into its own column as optimization
-function driver:tags_where(tags)
+-- schema (optional): adds the condition on the entity column, the table sort key
+function driver:tags_where(tags, schema)
    local conds = {}
    for k, v in pairs(tags) do
       if k == "ifid" and tonumber(v) ~= nil then
          conds[#conds + 1] = string.format("ifid = %d", tonumber(v))
       else
          conds[#conds + 1] = string.format("tags['%s'] = '%s'", ch_escape(k), ch_escape(v))
+      end
+   end
+
+   -- A table created before the entity column has it empty in the old rows and not in the sort key
+   if schema and is_entity_in_sort_key() then
+      local entity_cond = entity_where(schema, tags)
+
+      if entity_cond then
+         conds[#conds + 1] = entity_cond
       end
    end
 
@@ -146,7 +245,19 @@ end
 --! Serialised to line protocol by CHTimeseriesExporter and buffered in the
 --! in-memory C++ queue; flushed to ClickHouse by driver:export().
 function driver:append(schema, timestamp, tags, metrics)
-   local ret = interface.chTsEnqueue(schema.name, timestamp, tags, metrics, tonumber(tags.ifid))
+   local entity = nil
+
+   if has_entity_column() then
+      local schema_entity_tags = entity_tags(schema)
+
+      for i, tag in ipairs(schema_entity_tags) do
+         entity_values[i] = tags[tag] or ""
+      end
+
+      entity = table.concat(entity_values, ENTITY_SEPARATOR, 1, #schema_entity_tags)
+   end
+
+   local ret = interface.chTsEnqueue(schema.name, timestamp, tags, metrics, tonumber(tags.ifid), entity)
 
    if ret == false then
       ntop.ts_inc_num_drops()
@@ -280,7 +391,7 @@ function driver:query(schema, tstart, tend, tags, options)
    local raw_step   = schema.options.step
    local time_step  = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
-   local tw         = self:tags_where(tags)
+   local tw         = self:tags_where(tags, schema)
    local sql
 
    if is_counter then
@@ -446,7 +557,7 @@ function driver:timeseries_query_multi(options, entries)
       table.concat(entity_select, ", "), time_step, time_step,
       gauge_select(schema),
       ch_escape(self.db), CH_TS_TABLE_NAME,
-      ch_escape(schema.name), self:tags_where(common_tags), entity_filter,
+      ch_escape(schema.name), self:tags_where(common_tags, schema), entity_filter,
       tstart, tend,
       (#entity_keys > 0) and (table.concat(tag_values, ", ") .. ", ") or "",
       (#entity_keys > 0) and (table.concat(tag_values, ", ") .. ", ") or "")
@@ -490,7 +601,7 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
 
    local is_counter    = (schema.options.metrics_type == ts_common.metrics.counter)
    local is_derivative = (schema.options.metrics_type == ts_common.metrics.derivative)
-   local tw            = self:tags_where(tags)
+   local tw            = self:tags_where(tags, schema)
 
    local sel = {}
    for _, metric in ipairs(schema._metrics) do
@@ -536,7 +647,7 @@ end
 --! @brief List existing series matching the supplied tag filter.
 function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, end_time)
 
-   local tw = self:tags_where(tags_filter)
+   local tw = self:tags_where(tags_filter, schema)
 
    local time_cond = string.format("tstamp >= toDateTime(%d)", start_time)
    if end_time ~= nil then
@@ -602,7 +713,7 @@ local function query_top_items(self, schema, tags, tstart, tend, options, top_ta
    end
 
    local is_counter = (schema.options.metrics_type == ts_common.metrics.counter)
-   local tw         = self:tags_where(tags)
+   local tw         = self:tags_where(tags, schema)
 
    -- Build a value expression that sums all metrics into one comparable number.
    local value_parts = {}
@@ -888,30 +999,29 @@ end
 
 -- ##############################################
 
---! @brief Initialise the ClickHouse schema for timeseries.
---! Called when the driver is first enabled or when retention changes.
---! @param ts_utils  reference to the ts_utils module.
-function driver:setup(ts_utils)
-   local data_retention_utils = require "data_retention_utils"
-   local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays() or 365
-
-   -- Create the timeseries table if it does not already exist.
-   -- Best-practice design choices:
-   --   * LowCardinality(String) for schema_name          – bounded number of distinct values
-   --   * Int16 for ifid                                  – ifid from the tags Map materialized
-   --   * LowCardinality(String) for ntopng_instance_name – ntopng instance name
-   --   * Map(LowCardinality(String), String) for tags    – LowCardinality keys avoid redundant
-   --                                                        storage of repeated tag/metric names
-   --   * Map(LowCardinality(String), Float64) metrics    – same benefit for metric keys
-   --   * MergeTree partitioned by day                    – enables efficient partition pruning
-   --   * ORDER BY (schema_name, ifid, tstamp)            – optimises time-range scans per schema,
-   --                                                        per interface
-   --  Note: no TTL clause, retention is enforced by deleting daily partitions in deleteOldData(),
-   --  which always uses the current preference value. A TTL configured at CREATE TABLE time
-   --  would become complicated to handle if the user changes the retention setting: it could
-   --  delete data that should be kept (if retention is increased) or keep data too long (if
-   --  retention is decreased)
-   local create_sql = string.format([[
+-- CREATE TABLE of the timeseries table (also used for the table the migration fills).
+-- Best-practice design choices:
+--   * LowCardinality(String) for schema_name          – bounded number of distinct values
+--   * Int16 for ifid                                  – ifid from the tags Map materialized
+--   * LowCardinality(String) for ntopng_instance_name – ntopng instance name
+--   * Map(LowCardinality(String), String) for tags    – LowCardinality keys avoid redundant
+--                                                        storage of repeated tag/metric names
+--   * Map(LowCardinality(String), Float64) metrics    – same benefit for metric keys
+--   * MergeTree partitioned by day                    – enables efficient partition pruning
+--   * ORDER BY (schema_name, ifid, entity, tstamp)    – the rows of one entity (e.g. host,
+--                                                        host + protocol) are contiguous: a
+--                                                        query reads only them, not the rows
+--                                                        of every entity of the schema
+--  Note: a table created before the entity column keeps ORDER BY (schema_name, ifid, tstamp):
+--  ClickHouse cannot change the sort key of an existing table, migrateSchema() only adds
+--  the column
+--  Note: no TTL clause, retention is enforced by deleting daily partitions in deleteOldData(),
+--  which always uses the current preference value. A TTL configured at CREATE TABLE time
+--  would become complicated to handle if the user changes the retention setting: it could
+--  delete data that should be kept (if retention is increased) or keep data too long (if
+--  retention is decreased)
+local function create_table_sql(db, table_name)
+   return string.format([[
 CREATE TABLE IF NOT EXISTS `%s`.`%s`
 (
     `schema_name`  LowCardinality(String),
@@ -919,12 +1029,195 @@ CREATE TABLE IF NOT EXISTS `%s`.`%s`
     `ntopng_instance_name` LowCardinality(String),
     `tstamp`       DateTime CODEC(Delta, ZSTD),
     `tags`         Map(LowCardinality(String), String),
-    `metrics`      Map(LowCardinality(String), Float64)
+    `metrics`      Map(LowCardinality(String), Float64),
+    `entity`       String
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(tstamp)
-ORDER BY (schema_name, ifid, tstamp)]],
-      ch_escape(self.db), CH_TS_TABLE_NAME)
+ORDER BY (schema_name, ifid, entity, tstamp)]],
+      ch_escape(db), ch_escape(table_name))
+end
+
+--! @brief Move a table created before the entity column to ORDER BY (schema_name, ifid, entity, tstamp).
+--! ClickHouse cannot change the sort key of a table: the rows are copied, one day at a time, into a
+--! new table with the entity computed from the schema tags, then the two tables are exchanged.
+--! Runs at startup only, before the timeseries are written and the traffic is captured.
+--! The old table is untouched until the copy is complete and checked: on failure it stays as it is.
+--! @param ts_utils  reference to the ts_utils module (for the schemas)
+--! @return true on success
+function driver:migrateToEntityTable(ts_utils)
+   local clickhouse_partition_utils = require "clickhouse_partition_utils"
+   local format_utils = require "format_utils"
+   local json = require "dkjson"
+   local begin_time = os.time()
+   local db = ch_escape(self.db)
+   local old_table = CH_TS_TABLE_NAME
+   local new_table = CH_TS_MIGRATION_TABLE_NAME
+
+   -- Once per request: a migration that stops ntopng is not run again at every startup
+   ntop.delCache(CH_MIGRATION_REQUEST_KEY)
+
+   local function done(success, message)
+      ntop.setCache(CH_MIGRATION_STATUS_KEY, json.encode({
+         success = success,
+         message = message,
+         epoch = os.time(),
+         duration = os.time() - begin_time,
+      }))
+
+      traceError(success and TRACE_NORMAL or TRACE_ERROR, TRACE_CONSOLE,
+         "[ClickHouse TS] Migration to the entity sort key: " .. message)
+
+      return success
+   end
+
+   -- Before the exchange: the old table is still the timeseries table
+   local function failed(message)
+      ch_write(string.format("DROP TABLE IF EXISTS `%s`.`%s` SYNC", db, new_table))
+      return done(false, message)
+   end
+
+   -- 1. Disk: the copy needs about the size of the table
+   local sizes = clickhouse_partition_utils.getPartitionsSize(self.db)
+
+   if not sizes then
+      return done(false, "unable to read the size of the table")
+   end
+
+   -- No parts: an empty table
+   local old_size = sizes[old_table] or { bytes = 0, partitions = {} }
+
+   local res = ch_query(string.format(
+      "SELECT min(free_space) AS free_space FROM system.disks WHERE name IN "
+      .. "(SELECT disk_name FROM system.parts WHERE database = '%s' AND table = '%s' AND active)",
+      db, old_table)) or {}
+   local free_space = tonumber(res[1] and res[1]["free_space"])
+   local needed_space = math.ceil(old_size.bytes * MIGRATION_DISK_MARGIN)
+
+   if (not free_space) or (free_space < needed_space) then
+      return done(false, string.format("not enough free disk: %s needed, %s free",
+         format_utils.bytesToSize(needed_space), format_utils.bytesToSize(free_space or 0)))
+   end
+
+   -- 2. Entity of the old rows: the same value driver:append writes, from the tags of each schema
+   ts_utils.loadSchemas()
+
+   local schema_names = {}
+   local schema_tags = {}
+
+   for name, schema in pairs(ts_utils.getLoadedSchemas()) do
+      schema_names[#schema_names + 1] = string.format("'%s'", ch_escape(name))
+      schema_tags[#schema_tags + 1] = string.format("'%s'", ch_escape(table.concat(entity_tags(schema), ",")))
+   end
+
+   -- Schemas not defined anymore get an empty entity
+   local entity_sql = string.format(
+      "arrayStringConcat(arrayMap(tag -> tags[tag], splitByChar(',', transform(schema_name, [%s], [%s], ''))), '\\x1F')",
+      table.concat(schema_names, ","), table.concat(schema_tags, ","))
+
+   -- 3. Copy, one day at a time (newest first) into a new table: a leftover of a failed run is dropped
+   ch_write(string.format("DROP TABLE IF EXISTS `%s`.`%s` SYNC", db, new_table))
+
+   if not ch_write(create_table_sql(self.db, new_table)) then
+      return failed("unable to create the new table")
+   end
+
+   local partitions = {}
+
+   for partition in pairs(old_size.partitions) do
+      partitions[#partitions + 1] = partition
+   end
+
+   table.sort(partitions, function(a, b) return a > b end)
+
+   for i, partition in ipairs(partitions) do
+      local partition_begin = os.time()
+
+      if not ch_write(string.format(
+            "INSERT INTO `%s`.`%s` (schema_name, ifid, ntopng_instance_name, tstamp, tags, metrics, entity) "
+            .. "SELECT schema_name, ifid, ntopng_instance_name, tstamp, tags, metrics, %s "
+            .. "FROM `%s`.`%s` WHERE toYYYYMMDD(tstamp) = %u",
+            db, new_table, entity_sql, db, old_table, partition)) then
+         return failed(string.format("copy of the day %u failed", partition))
+      end
+
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format(
+         "[ClickHouse TS] Migration: day %u copied (%u/%u) in %u sec",
+         partition, i, #partitions, os.time() - partition_begin))
+   end
+
+   -- 4. Check: every row copied
+   local function count_rows(table_name)
+      local rows = ch_query(string.format("SELECT count() AS rows FROM `%s`.`%s`", db, table_name)) or {}
+      return tonumber(rows[1] and rows[1]["rows"])
+   end
+
+   local old_rows = count_rows(old_table)
+   local new_rows = count_rows(new_table)
+
+   if (not old_rows) or (old_rows ~= new_rows) then
+      return failed(string.format("rows copied %s, expected %s", tostring(new_rows), tostring(old_rows)))
+   end
+
+   -- 5. Atomic exchange (Atomic database engine): from now on the copy is the timeseries table
+   if not ch_write(string.format("EXCHANGE TABLES `%s`.`%s` AND `%s`.`%s`", db, old_table, db, new_table)) then
+      return failed("unable to exchange the tables")
+   end
+
+   -- 6. The old rows, now in the other table
+   if not ch_write(string.format("DROP TABLE `%s`.`%s` SYNC", db, new_table)) then
+      return done(true, string.format("%u rows migrated, drop the old table `%s`.`%s` to free %s",
+         new_rows, self.db, new_table, format_utils.bytesToSize(old_size.bytes)))
+   end
+
+   return done(true, string.format("%u rows migrated", new_rows))
+end
+
+-- ##############################################
+
+--! @brief State of the move to the entity sort key, for the GUI: Redis keys only, no query.
+--! @return { old_table = true for a table created before the entity column (as seen at startup),
+--!           requested = true when the move runs at the next startup,
+--!           last = { success, message, epoch, duration } of the last move, or nil }
+function driver.getEntityMigrationState()
+   local json = require "dkjson"
+   local last = ntop.getCache(CH_MIGRATION_STATUS_KEY)
+
+   -- A flag of a run with the ClickHouse driver stays when the driver is not active anymore
+   local is_active = ntop.isClickHouseEnabled() and (ntop.getPref("ntopng.prefs.timeseries_driver") == "clickhouse")
+
+   return {
+      old_table = is_active and (ntop.getCache(CH_ENTITY_SORT_KEY) == "0"),
+      requested = (ntop.getCache(CH_MIGRATION_REQUEST_KEY) == "1"),
+      last = (not isEmptyString(last)) and json.decode(last) or nil,
+   }
+end
+
+-- ##############################################
+
+--! @brief Request the move to the entity sort key at the next startup.
+--! @return false when the table does not need it (already moved, or not seen yet by a startup)
+function driver.requestEntityMigration()
+   if not driver.getEntityMigrationState().old_table then
+      return false
+   end
+
+   ntop.setCache(CH_MIGRATION_REQUEST_KEY, "1")
+
+   return true
+end
+
+-- ##############################################
+
+--! @brief Initialise the ClickHouse schema for timeseries.
+--! Called when the driver is first enabled or when retention changes.
+--! @param ts_utils  reference to the ts_utils module.
+--! @param first_setup  true at startup (the requested migration runs only then)
+function driver:setup(ts_utils, first_setup)
+   local data_retention_utils = require "data_retention_utils"
+   local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays() or 365
+
+   local create_sql = create_table_sql(self.db, CH_TS_TABLE_NAME)
 
    local ok = ch_write(create_sql)
    if not ok then
@@ -933,7 +1226,45 @@ ORDER BY (schema_name, ifid, tstamp)]],
       return false
    end
 
-   self:migrateSchema()
+   entity_column = self:migrateSchema()
+   ntop.setCache(CH_ENTITY_COLUMN_KEY, entity_column and "1" or "0")
+
+   -- Queries filter on the entity only where it is in the sort key (not in a table created before it)
+   -- @return nil when the sort key cannot be read
+   local function read_entity_in_sort_key()
+      local res = ch_query(string.format(
+         "SELECT sorting_key FROM system.tables WHERE database = '%s' AND name = '%s'",
+         ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME)))
+
+      if not (res and res[1] and res[1]["sorting_key"]) then
+         return nil
+      end
+
+      return (string.find(res[1]["sorting_key"], "entity", 1, true) ~= nil)
+   end
+
+   local in_sort_key = read_entity_in_sort_key()
+
+   if first_setup and ts_utils and (in_sort_key == false)
+      and (ntop.getCache(CH_MIGRATION_REQUEST_KEY) == "1") then
+      self:migrateToEntityTable(ts_utils)
+      in_sort_key = read_entity_in_sort_key()
+
+      -- The migrated table is created with the entity column
+      if in_sort_key then
+         entity_column = true
+         ntop.setCache(CH_ENTITY_COLUMN_KEY, "1")
+      end
+   end
+
+   -- Unknown: no entity filter and no upgrade proposed (a wrong "0" would propose a useless copy)
+   entity_in_sort_key = (in_sort_key == true)
+
+   if in_sort_key == nil then
+      ntop.delCache(CH_ENTITY_SORT_KEY)
+   else
+      ntop.setCache(CH_ENTITY_SORT_KEY, in_sort_key and "1" or "0")
+   end
 
    traceError(TRACE_INFO, TRACE_CONSOLE,
       string.format("[ClickHouse TS] Table `%s`.`%s` ready (retention: %d days)",
@@ -945,10 +1276,11 @@ end
 
 --! @brief Check actual schema (e.g. if it includes the ifid and ntopng_instance_name
 --! columns), add those which are missing, and migrate data (ifid from tags to column)
+--! @return true when the table has the entity column
 function driver:migrateSchema()
    local sql = string.format(
       "SELECT name FROM system.columns WHERE database = '%s' AND table = '%s' "
-      .. "AND name IN ('ifid', 'ntopng_instance_name')",
+      .. "AND name IN ('ifid', 'ntopng_instance_name', 'entity')",
       ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))
 
    local res = ch_query(sql) or {}
@@ -959,6 +1291,7 @@ function driver:migrateSchema()
 
    local has_ifid     = found["ifid"] or false
    local has_instance = found["ntopng_instance_name"] or false
+   local has_entity   = found["entity"] or false
    local added        = {}
 
    if not has_ifid then
@@ -993,21 +1326,35 @@ function driver:migrateSchema()
       end
    end
 
+   -- Only the column, so that the inserts have it: the existing rows are not rewritten
+   -- (their entity is '') and the sort key stays (schema_name, ifid, tstamp)
+   if not has_entity then
+      if ch_write(string.format(
+            "ALTER TABLE `%s`.`%s` ADD COLUMN IF NOT EXISTS `entity` String",
+            ch_escape(self.db), ch_escape(CH_TS_TABLE_NAME))) then
+         has_entity = true
+         added[#added + 1] = "entity"
+      end
+   end
+
    if #added > 0 then
       traceError(TRACE_INFO, TRACE_CONSOLE, string.format(
          "[ClickHouse TS] Added '%s' column(s) to %s.%s",
          table.concat(added, "', '"), self.db, CH_TS_TABLE_NAME))
    end
 
-   if (not has_ifid) or (not has_instance) then
+   if (not has_ifid) or (not has_instance) or (not has_entity) then
       local missing = {}
       if not has_ifid     then missing[#missing + 1] = "ifid" end
       if not has_instance then missing[#missing + 1] = "ntopng_instance_name" end
+      if not has_entity   then missing[#missing + 1] = "entity" end
 
       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format(
          "[ClickHouse TS] Failed to add the '%s' column(s) to %s.%s",
          table.concat(missing, "', '"), self.db, CH_TS_TABLE_NAME))
    end
+
+   return has_entity
 end
 
 -- ##############################################

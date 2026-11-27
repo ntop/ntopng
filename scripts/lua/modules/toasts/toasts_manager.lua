@@ -21,8 +21,10 @@ local function toast_has_been_dismissed(toast_id)
 end
 
 --- Returns an array of toast to be displayed inside the pages
+--- @param global_only boolean only the toasts of every page (no pages/subpages): the REST asked
+---        at the SPA navigations has no Lua page to match the others
 --- @return table
-function toats_manager.load_main_toasts()
+function toats_manager.load_main_toasts(global_only)
 
     local container = {}
     local current_page = page_utils.get_active_entry()
@@ -46,6 +48,10 @@ function toats_manager.load_main_toasts()
         -- if we are in a excluded subpage then don't show the toast
         local excluded_subpages = toast.excluded_subpages or {[current_page] = {}}
         if (table.contains(excluded_subpages, curent_subpage)) then
+            goto continue
+        end
+
+        if global_only and ((table.len(toast.pages) > 0) or (next(toast.subpages or {}) ~= nil)) then
             goto continue
         end
 
@@ -102,22 +108,32 @@ function toats_manager.dismiss_toast(toast_id)
     return true, "Success"
 end
 
---- Show the alert toasts of the page: they are rendered by the PageToasts Vue component, which shows
---- them with the toast stack of the page (pro/http_src/vue/components/toast-stack.vue).
---- @param container_id string The id of the container of the Vue component
---- @param toasts table A alert_toasts list to render
-function toats_manager.render_toasts(container_id, toasts)
-    if #toasts == 0 then return end
-
+--- Plain tables of the toasts, as the PageToasts Vue component reads them
+--- @param toasts table A alert_toasts list
+--- @return table
+function toats_manager.toasts_to_table(toasts)
     local list = {}
+
     for _, toast in ipairs(toasts) do
         list[#list + 1] = toast:to_table()
     end
 
+    return list
+end
+
+--- Show the alert toasts of the page: they are rendered by the PageToasts Vue component, which shows
+--- them with the toast stack of the page (pro/http_src/vue/components/toast-stack.vue).
+--- Mounted also without toasts: at the SPA navigations it asks the new ones to the REST.
+--- @param container_id string The id of the container of the Vue component
+--- @param toasts table A alert_toasts list to render
+function toats_manager.render_toasts(container_id, toasts)
     template.render("pages/vue_page.template", {
         vue_page_name = "PageToasts",
         vue_container_id = container_id,
-        page_context = json.encode({ toasts = list, csrf = ntop.getRandomCSRFValue() }),
+        page_context = json.encode({
+            toasts = toats_manager.toasts_to_table(toasts),
+            csrf = ntop.getRandomCSRFValue()
+        }),
     })
 end
 

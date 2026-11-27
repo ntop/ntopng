@@ -6186,8 +6186,8 @@ static int ntop_clickhouse_exec_sql_write(lua_State* vm) {
 /* ****************************************** */
 
 /* Enqueue a timeseries row into the ClickHouse TS queue.
- * Lua signature: interface.chTsEnqueue(schema, timestamp, tags, metrics) -> boolean */
-/* @brief Enqueues a ClickHouse time-series data point.  Lua: interface.chTsEnqueue(schema, timestamp, tags, metrics) → boolean */
+ * Lua signature: interface.chTsEnqueue(schema, timestamp, tags, metrics, ifid, entity) -> boolean */
+/* @brief Enqueues a ClickHouse time-series data point.  Lua: interface.chTsEnqueue(schema, timestamp, tags, metrics, ifid, entity) → boolean */
 static int ntop_interface_ch_ts_enqueue(lua_State* vm) {
   bool rv = false;
   NetworkInterface* curr_iface;
