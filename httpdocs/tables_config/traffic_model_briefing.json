@@ -37,7 +37,7 @@
 		{
 			"id": "types",
 			"data_field": "types",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "120px",
 			"class": [
 				"text-nowrap"

@@ -34,7 +34,7 @@
 		{
 			"id": "protocols",
 			"data_field": "protocols",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "200px",
 			"class": [
 				"text-nowrap"

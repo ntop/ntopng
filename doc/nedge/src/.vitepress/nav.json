@@ -1,0 +1,167 @@
+{
+ "sidebar": [
+  {
+   "text": "User's Guide",
+   "items": [
+    {
+     "text": "Overview",
+     "link": "/introduction"
+    },
+    {
+     "text": "Features",
+     "link": "/features"
+    },
+    {
+     "text": "Getting Started",
+     "link": "/get_started"
+    },
+    {
+     "text": "Users",
+     "link": "/users"
+    },
+    {
+     "text": "Policies",
+     "link": "/policies"
+    },
+    {
+     "text": "Bandwidth Control",
+     "link": "/bandwidth_control"
+    },
+    {
+     "text": "Security",
+     "link": "/security"
+    },
+    {
+     "text": "VLAN",
+     "link": "/vlan"
+    },
+    {
+     "text": "DNS",
+     "link": "/dns"
+    },
+    {
+     "text": "Captive Portal",
+     "link": "/captive_portal"
+    },
+    {
+     "text": "Bridge Mode",
+     "link": "/bridging"
+    },
+    {
+     "text": "Router Mode",
+     "link": "/routing"
+    },
+    {
+     "text": "Hardware Bypass Support",
+     "link": "/hw_bypass"
+    },
+    {
+     "text": "Data Management",
+     "link": "/data_management"
+    },
+    {
+     "text": "Device Management",
+     "link": "/management"
+    },
+    {
+     "text": "Device Recovery",
+     "link": "/recovery"
+    },
+    {
+     "text": "Configuration Backup",
+     "link": "/conf_backup"
+    },
+    {
+     "text": "Licenses",
+     "link": "/licenses"
+    }
+   ]
+  },
+  {
+   "text": "Developer's Guide",
+   "items": [
+    {
+     "text": "API Documentation",
+     "link": "/api/",
+     "items": [
+      {
+       "text": "RESTful API",
+       "link": "/api/rest/",
+       "items": [
+        {
+         "text": "RESTful API v2 Specification",
+         "link": "/api/rest/api_v2"
+        }
+       ],
+       "collapsed": true
+      }
+     ],
+     "collapsed": true
+    }
+   ]
+  }
+ ],
+ "external": [
+  {
+   "text": "ntopng",
+   "link": "https://www.ntop.org/guides/ntopng/"
+  },
+  {
+   "text": "nProbe",
+   "link": "https://www.ntop.org/guides/nprobe/"
+  },
+  {
+   "text": "nProbe Cento",
+   "link": "https://www.ntop.org/guides/cento/"
+  },
+  {
+   "text": "n2disk",
+   "link": "https://www.ntop.org/guides/n2disk/"
+  },
+  {
+   "text": "nDPI",
+   "link": "https://www.ntop.org/guides/nDPI/"
+  },
+  {
+   "text": "PF_RING",
+   "link": "https://www.ntop.org/guides/pf_ring/"
+  },
+  {
+   "text": "nScrub",
+   "link": "https://www.ntop.org/guides/nscrub/"
+  },
+  {
+   "text": "nBox",
+   "link": "https://www.ntop.org/guides/nbox/"
+  },
+  {
+   "text": "nTap",
+   "link": "https://www.ntop.org/guides/ntap/"
+  }
+ ],
+ "pages": {
+  "api/index": "API Documentation",
+  "api/rest/api_v2": "RESTful API v2 Specification",
+  "api/rest/examples_v2": "Examples v2",
+  "api/rest/index": "RESTful API",
+  "bandwidth_control": "Bandwidth Control",
+  "bridging": "Bridge Mode",
+  "captive_portal": "Captive Portal",
+  "conf_backup": "Configuration Backup",
+  "data_management": "Data Management",
+  "dns": "DNS",
+  "features": "Features",
+  "get_started": "Getting Started",
+  "hw_bypass": "Hardware Bypass Support",
+  "index": "nEdge Documentation",
+  "introduction": "Overview",
+  "licenses": "Licenses",
+  "management": "Device Management",
+  "policies": "Policies",
+  "recovery": "Device Recovery",
+  "routing": "Router Mode",
+  "security": "Security",
+  "users": "Users",
+  "vlan": "VLAN"
+ }
+}

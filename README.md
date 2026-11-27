@@ -25,6 +25,24 @@ Enjoy.
 
 If you want to learn more about ntopng please visit the [User's Guide](https://www.ntop.org/guides/ntopng/) and the [API Documentation](https://www.ntop.org/guides/ntopng/api/index.html) or watch our [latest webinar](https://www.youtube.com/watch?v=dtLrax-_ZNs).
 
+
+### Building the User's Guide
+
+The ntopng and nEdge User's Guides are [VitePress](https://vitepress.dev) projects (Markdown pages, same
+URLs as the old Sphinx guides). Requires Node 18+ and `make`.
+
+| Guide | Folder | URL |
+|---|---|---|
+| ntopng | `doc/src/` | `/guides/ntopng/<page>.html` |
+| nEdge | `doc/nedge/src/` | `/guides/nedge/<page>.html` |
+
+```
+cd doc/src                # or doc/nedge/src
+make dist                 # build the static site into dist/ (runs npm install if needed)
+make serve                # build, then serve it at http://localhost:4173/guides/ntopng/   (PORT=8080 make serve)
+npm run dev               # live reload while editing: http://localhost:5173/guides/ntopng/
+```
+
 ### Details
 For more information about ntopng, please visit [http://ntop.org](https://www.ntop.org/products/traffic-analysis/ntop/)
 

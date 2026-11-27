@@ -59,7 +59,7 @@
 		{
 			"id": "servers_list",
 			"data_field": "servers_list",
-			"sortable": false,
+			"sortable": true,
 			"min-width": "320px",
 			"class": [
 				"text-nowrap"

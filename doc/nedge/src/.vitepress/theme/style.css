@@ -1,0 +1,18 @@
+:root { --vp-c-brand-1: #0f6bbd; --vp-c-brand-2: #1a7fd6; --vp-c-brand-3: #0b5a9e; --vp-c-brand-soft: rgba(15,107,189,.14); }
+.dark { --vp-c-brand-1: #4aa3f0; --vp-c-brand-2: #6bb6f5; --vp-c-brand-3: #3a8fdc; }
+.VPNavBarTitle .logo { height: 30px; width: auto; }
+.vp-doc figure { margin: 1.5rem 0; text-align: center; }
+.vp-doc figure img { max-width: 100%; height: auto; border: 1px solid var(--vp-c-divider); border-radius: 6px; cursor: zoom-in; }
+.vp-doc figcaption { font-size: .875rem; color: var(--vp-c-text-2); margin-top: .5rem; }
+.vp-doc table { display: table; width: 100%; }
+.medium-zoom-overlay, .medium-zoom-image--opened { z-index: 100; }
+
+.vp-doc p img, .vp-doc li img, .vp-doc td img { vertical-align: text-bottom; }
+.vp-doc p img[alt$=' icon'], .vp-doc li img[alt$=' icon'] { height: 1.2em; width: auto; border: 0; border-radius: 0; cursor: default; display: inline; }
+
+/* wider layout so long code blocks scroll less */
+:root { --vp-layout-max-width: 1800px; }
+@media (min-width: 960px) {
+  .VPDoc.has-sidebar .container { max-width: 1400px !important; }
+  .VPDoc.has-sidebar .content-container { max-width: 1100px !important; }
+}

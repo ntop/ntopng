@@ -1,0 +1,1493 @@
+{
+ "sidebar": [
+  {
+   "text": "User's Guide",
+   "items": [
+    {
+     "text": "What is ntopng",
+     "link": "/what_is_ntopng",
+     "items": [
+      {
+       "text": "Basic Concepts",
+       "link": "/basic_concepts/",
+       "items": [
+        {
+         "text": "Geolocation",
+         "link": "/basic_concepts/geolocation"
+        },
+        {
+         "text": "Network Interfaces",
+         "link": "/basic_concepts/interfaces"
+        },
+        {
+         "text": "System Interface",
+         "link": "/basic_concepts/system_interface"
+        },
+        {
+         "text": "Hosts",
+         "link": "/basic_concepts/hosts"
+        },
+        {
+         "text": "Host Pools",
+         "link": "/basic_concepts/host_pools"
+        },
+        {
+         "text": "Statistics",
+         "link": "/basic_concepts/stats"
+        },
+        {
+         "text": "Alerts",
+         "link": "/basic_concepts/alerts"
+        },
+        {
+         "text": "Timeseries",
+         "link": "/basic_concepts/timeseries"
+        },
+        {
+         "text": "Scripts and Checks",
+         "link": "/basic_concepts/scripts"
+        },
+        {
+         "text": "Local Broadcast Domain",
+         "link": "/basic_concepts/local_broadcast_domain"
+        },
+        {
+         "text": "Disk Space Requirements",
+         "link": "/basic_concepts/disk_space"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Use Cases",
+       "link": "/use_cases/",
+       "items": [
+        {
+         "text": "Mikrotik",
+         "link": "/use_cases/mikrotik"
+        },
+        {
+         "text": "Suricata",
+         "link": "/use_cases/suricata"
+        },
+        {
+         "text": "Monitoring Large Networks",
+         "link": "/use_cases/large_networks"
+        },
+        {
+         "text": "Processes Monitoring",
+         "link": "/use_cases/processes_monitoring"
+        },
+        {
+         "text": "SNMP Monitoring",
+         "link": "/use_cases/snmp_monitoring"
+        },
+        {
+         "text": "Infrastructure Monitoring",
+         "link": "/use_cases/infrastructure_monitoring"
+        },
+        {
+         "text": "Netflow/sFlow Monitoring",
+         "link": "/use_cases/netflow_sflow_monitoring"
+        },
+        {
+         "text": "Mirror/SPAN/TAP Monitoring",
+         "link": "/use_cases/mirror_tap_monitoring"
+        },
+        {
+         "text": "Monitoring Multiple Locations",
+         "link": "/use_cases/multiple_locations_monitoring"
+        }
+       ],
+       "collapsed": true
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Available Versions & Licensing",
+     "link": "/versions_and_licensing"
+    },
+    {
+     "text": "Installation",
+     "link": "/installation"
+    },
+    {
+     "text": "How to Start ntopng",
+     "link": "/how_to_start/",
+     "items": [
+      {
+       "text": "The ntopng Configuration File",
+       "link": "/how_to_start/configuration_file"
+      },
+      {
+       "text": "Running ntopng as a Daemon",
+       "link": "/how_to_start/running_as_a_daemon"
+      },
+      {
+       "text": "Running on Windows",
+       "link": "/how_to_start/running_on_windows"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Command Line Options",
+     "link": "/cli_options/",
+     "items": [
+      {
+       "text": "Command Line Options",
+       "link": "/cli_options/cli_options"
+      },
+      {
+       "text": "Configuration File Example",
+       "link": "/cli_options/cli_options_example"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "User Interface Guide",
+     "link": "/user_interface/",
+     "items": [
+      {
+       "text": "Network Interface",
+       "link": "/user_interface/network_interface/",
+       "items": [
+        {
+         "text": "Traffic Dashboard",
+         "link": "/user_interface/network_interface/dashboard/dashboard"
+        },
+        {
+         "text": "Traffic Reports",
+         "link": "/flow_dump/clickhouse/reports"
+        },
+        {
+         "text": "Sites",
+         "link": "/user_interface/network_interface/interface/sites"
+        },
+        {
+         "text": "Network Discovery",
+         "link": "/user_interface/network_interface/monitoring/network_discovery"
+        },
+        {
+         "text": "Active Scan",
+         "link": "/user_interface/network_interface/monitoring/active_scan"
+        },
+        {
+         "text": "Flow Alerts Analyser",
+         "link": "/user_interface/network_interface/alerts/flow_alerts_analyser"
+        },
+        {
+         "text": "Flows",
+         "link": "/user_interface/network_interface/flows/flows"
+        },
+        {
+         "text": "Historical",
+         "link": "/flow_dump/clickhouse/historical_flows"
+        },
+        {
+         "text": "Server Ports",
+         "link": "/user_interface/network_interface/flows/server_ports"
+        },
+        {
+         "text": "Hosts",
+         "link": "/user_interface/network_interface/hosts/hosts"
+        },
+        {
+         "text": "Analysis",
+         "link": "/user_interface/network_interface/maps/analysis_map"
+        },
+        {
+         "text": "Geo Map",
+         "link": "/user_interface/network_interface/maps/geo_map"
+        },
+        {
+         "text": "Hosts",
+         "link": "/user_interface/network_interface/maps/host_map"
+        },
+        {
+         "text": "Details",
+         "link": "/user_interface/network_interface/interface/interfaces"
+        },
+        {
+         "text": "Networks",
+         "link": "/user_interface/network_interface/interface/networks"
+        },
+        {
+         "text": "Host Pools",
+         "link": "/user_interface/network_interface/interface/host_pools"
+        },
+        {
+         "text": "Autonomous Systems",
+         "link": "/user_interface/network_interface/interface/autonomous_systems"
+        },
+        {
+         "text": "Countries",
+         "link": "/user_interface/network_interface/interface/countries"
+        },
+        {
+         "text": "VLANs",
+         "link": "/user_interface/network_interface/interface/vlans"
+        },
+        {
+         "text": "Assets Inventory",
+         "link": "/user_interface/network_interface/interface/assets"
+        },
+        {
+         "text": "Operating Systems",
+         "link": "/user_interface/network_interface/interface/operating_systems"
+        },
+        {
+         "text": "Pods and Containers",
+         "link": "/user_interface/network_interface/interface/containers"
+        },
+        {
+         "text": "Live Captures",
+         "link": "/user_interface/network_interface/interface/live_captures"
+        },
+        {
+         "text": "Traffic Report",
+         "link": "/user_interface/network_interface/interface/traffic_report"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "System Interface",
+       "link": "/user_interface/system_interface/",
+       "items": [
+        {
+         "text": "System",
+         "link": "/user_interface/system_interface/health/system"
+        },
+        {
+         "text": "Interfaces",
+         "link": "/user_interface/system_interface/health/interfaces"
+        },
+        {
+         "text": "Redis",
+         "link": "/user_interface/system_interface/health/redis"
+        },
+        {
+         "text": "InfluxDB",
+         "link": "/user_interface/system_interface/health/influxdb"
+        },
+        {
+         "text": "ClickHouse",
+         "link": "/user_interface/system_interface/health/clickhouse"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Alerts Explorer",
+       "link": "/user_interface/shared/alerts/alerts_explorer",
+       "items": [
+        {
+         "text": "Issues",
+         "link": "/user_interface/shared/alerts/issues"
+        },
+        {
+         "text": "Alerts Graph",
+         "link": "/user_interface/shared/alerts/others/alerts_graph"
+        },
+        {
+         "text": "Engaged Alerts",
+         "link": "/user_interface/shared/alerts/alerts_type/engaged_alerts"
+        },
+        {
+         "text": "Past Alerts",
+         "link": "/user_interface/shared/alerts/alerts_type/past_alerts"
+        },
+        {
+         "text": "Flow Alerts",
+         "link": "/user_interface/shared/alerts/alerts_type/flow_alerts"
+        },
+        {
+         "text": "Alerts Filters",
+         "link": "/user_interface/shared/alerts/others/alerts_filters"
+        },
+        {
+         "text": "Custom Queries",
+         "link": "/user_interface/shared/alerts/others/custom_queries"
+        },
+        {
+         "text": "Mitre Classification",
+         "link": "/user_interface/shared/alerts/others/mitre_classification"
+        },
+        {
+         "text": "Remediations",
+         "link": "/user_interface/shared/alerts/remediations/",
+         "items": [
+          {
+           "text": "Remediations for nDPI Risks",
+           "link": "/user_interface/shared/alerts/remediations/ndpi_flow_risks"
+          },
+          {
+           "text": "Remediations for ntopng Flow Risks",
+           "link": "/user_interface/shared/alerts/remediations/ntopng_flow_risks"
+          },
+          {
+           "text": "Remediations for Host Risks",
+           "link": "/user_interface/shared/alerts/remediations/host_risks"
+          }
+         ],
+         "collapsed": true
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Notifications",
+       "link": "/user_interface/shared/alerts/available_endpoints"
+      },
+      {
+       "text": "Active Monitoring",
+       "link": "/user_interface/shared/monitoring/active_monitoring"
+      },
+      {
+       "text": "Infrastructure Monitoring",
+       "link": "/user_interface/shared/monitoring/infrastructure_monitoring"
+      },
+      {
+       "text": "SNMP",
+       "link": "/user_interface/shared/snmp/",
+       "items": [
+        {
+         "text": "Configuration and Discovery",
+         "link": "/user_interface/shared/snmp/configuration"
+        },
+        {
+         "text": "Device Monitoring",
+         "link": "/user_interface/shared/snmp/monitoring"
+        },
+        {
+         "text": "SNMP Usage",
+         "link": "/user_interface/shared/snmp/usage"
+        },
+        {
+         "text": "Interface Similarity",
+         "link": "/user_interface/shared/snmp/similarity"
+        },
+        {
+         "text": "Network Topology",
+         "link": "/user_interface/shared/snmp/topology"
+        },
+        {
+         "text": "Device rules",
+         "link": "/user_interface/shared/snmp/rules"
+        },
+        {
+         "text": "Statistics and Troubleshooting",
+         "link": "/user_interface/shared/snmp/statistics_and_troubleshooting"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Access Control List",
+       "link": "/user_interface/shared/policies/access_control_list"
+      },
+      {
+       "text": "Allowed Applications",
+       "link": "/user_interface/shared/policies/allowed_applications"
+      },
+      {
+       "text": "Device/MAC Address Tracking",
+       "link": "/user_interface/shared/policies/device_mac_address_tracking"
+      },
+      {
+       "text": "Host Policy",
+       "link": "/user_interface/shared/policies/network_configuration"
+      },
+      {
+       "text": "Traffic Rules",
+       "link": "/user_interface/shared/policies/traffic_rules"
+      },
+      {
+       "text": "Behavioural Checks",
+       "link": "/user_interface/shared/alerts/others/available_alerts",
+       "items": [
+        {
+         "text": "Alerts List per License",
+         "link": "/user_interface/shared/alerts/others/alerts_list_per_license"
+        },
+        {
+         "text": "Host Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/host_checks"
+        },
+        {
+         "text": "Interface Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/interface_checks"
+        },
+        {
+         "text": "Local Networks Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/local_network_checks"
+        },
+        {
+         "text": "SNMP Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/snmp_checks"
+        },
+        {
+         "text": "Flow Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/flow_checks"
+        },
+        {
+         "text": "System Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/system_checks"
+        },
+        {
+         "text": "Active Monitoring Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/active_monitoring_checks"
+        },
+        {
+         "text": "Syslog Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/syslog_checks"
+        },
+        {
+         "text": "Autonomous Systems Behavioural Checks",
+         "link": "/user_interface/shared/alerts/others/as_checks"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Behavioural Checks Exclusion",
+       "link": "/user_interface/shared/alerts/others/behavioural_checks_exclusion"
+      },
+      {
+       "text": "Traffic Profiles",
+       "link": "/user_interface/shared/policies/traffic_profiles"
+      },
+      {
+       "text": "Users",
+       "link": "/user_interface/shared/settings/users"
+      },
+      {
+       "text": "Preferences",
+       "link": "/user_interface/shared/settings/preferences"
+      },
+      {
+       "text": "Blacklists",
+       "link": "/user_interface/shared/settings/blacklists"
+      },
+      {
+       "text": "Configurations",
+       "link": "/user_interface/shared/settings/configurations"
+      },
+      {
+       "text": "Applications and Categories",
+       "link": "/user_interface/shared/settings/applications_and_categories"
+      },
+      {
+       "text": "Tags",
+       "link": "/user_interface/shared/settings/tags"
+      },
+      {
+       "text": "REST API",
+       "link": "/user_interface/shared/developer/rest_api"
+      },
+      {
+       "text": "Analyze PCAP File",
+       "link": "/user_interface/shared/developer/analyze_pcap_file"
+      },
+      {
+       "text": "Manage Data",
+       "link": "/user_interface/shared/developer/manage_data"
+      },
+      {
+       "text": "ClickHouse Explorer",
+       "link": "/user_interface/shared/developer/clickhouse_explorer"
+      },
+      {
+       "text": "Behavioural Checks",
+       "link": "/user_interface/shared/developer/behavioural_checks"
+      },
+      {
+       "text": "Alert and Flow Status Definitions",
+       "link": "/user_interface/shared/developer/alert_and_flow_status_definitions"
+      },
+      {
+       "text": "Directiories",
+       "link": "/user_interface/shared/developer/directories"
+      },
+      {
+       "text": "About",
+       "link": "/user_interface/shared/help/about"
+      },
+      {
+       "text": "ntop Blog",
+       "link": "/user_interface/shared/help/ntop_blog"
+      },
+      {
+       "text": "Report an Issue",
+       "link": "/user_interface/shared/help/report_an_issue"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "User Authentication",
+     "link": "/authentication"
+    },
+    {
+     "text": "Using ntopng with ntop Tools",
+     "link": "/using_with_other_tools/",
+     "items": [
+      {
+       "text": "Using ntopng with nProbe",
+       "link": "/using_with_other_tools/nprobe"
+      },
+      {
+       "text": "Using ntopng with nProbe (Collector Mode)",
+       "link": "/using_with_other_tools/nprobe_collector_mode"
+      },
+      {
+       "text": "Using ntopng with nEdgeLite",
+       "link": "/using_with_other_tools/nedgelite"
+      },
+      {
+       "text": "Using ntopng with nProbe Agent",
+       "link": "/using_with_other_tools/nprobeagent"
+      },
+      {
+       "text": "Using ntopng with nProbe Cento",
+       "link": "/using_with_other_tools/cento"
+      },
+      {
+       "text": "Using ntopng with n2disk",
+       "link": "/using_with_other_tools/n2disk"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "nAnalyst - Agentic AI Network Intelligence",
+     "link": "/nanalyst/",
+     "items": [
+      {
+       "text": "What is nAnalyst?",
+       "link": "/nanalyst/what_is_nanalyst"
+      },
+      {
+       "text": "Architecture",
+       "link": "/nanalyst/architecture"
+      },
+      {
+       "text": "Chat Interface",
+       "link": "/nanalyst/chat_interface"
+      },
+      {
+       "text": "AI Dashboards",
+       "link": "/nanalyst/ai_dashboards"
+      },
+      {
+       "text": "Features",
+       "link": "/nanalyst/features/",
+       "items": [
+        {
+         "text": "Explainability \u2014 No Black Box",
+         "link": "/nanalyst/features/no_black_box"
+        },
+        {
+         "text": "AI-Generated Network Policies",
+         "link": "/nanalyst/features/policies"
+        },
+        {
+         "text": "Active Monitoring Automation",
+         "link": "/nanalyst/features/active_monitoring"
+        },
+        {
+         "text": "Alert Management",
+         "link": "/nanalyst/features/alert_management"
+        },
+        {
+         "text": "Usage Statistics",
+         "link": "/nanalyst/features/usage_stats"
+        },
+        {
+         "text": "Action Audit Log",
+         "link": "/nanalyst/features/audit_log"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Tools and Licensing",
+       "link": "/nanalyst/tools_and_licensing"
+      },
+      {
+       "text": "LLM Setup",
+       "link": "/nanalyst/llm_setup"
+      },
+      {
+       "text": "MCP Server",
+       "link": "/nanalyst/mcp_server"
+      },
+      {
+       "text": "External MCP Servers",
+       "link": "/nanalyst/mcp_client"
+      },
+      {
+       "text": "Observability",
+       "link": "/nanalyst/observability",
+       "items": [
+        {
+         "text": "Usage Statistics",
+         "link": "/nanalyst/features/usage_stats"
+        },
+        {
+         "text": "Action Audit Log",
+         "link": "/nanalyst/features/audit_log"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Frequently Asked Questions",
+       "link": "/nanalyst/faq"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Flow Collection",
+     "link": "/flows/",
+     "items": [
+      {
+       "text": "What nProbe Does",
+       "link": "/flows/nprobe"
+      },
+      {
+       "text": "Flow Exporters",
+       "link": "/flows/exporters"
+      },
+      {
+       "text": "Exporter Interfaces Bandwidth Usage per Application",
+       "link": "/flows/exporters_bandwidth_usage"
+      },
+      {
+       "text": "Using ntopng with nProbe",
+       "link": "/using_with_other_tools/nprobe"
+      },
+      {
+       "text": "Using ntopng with nProbe (Collector Mode)",
+       "link": "/using_with_other_tools/nprobe_collector_mode"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Industrial Monitoring",
+     "link": "/scada/",
+     "items": [
+      {
+       "text": "ModbusTCP",
+       "link": "/scada/modbus"
+      },
+      {
+       "text": "S7Comm",
+       "link": "/scada/s7comm"
+      },
+      {
+       "text": "PROFINET",
+       "link": "/scada/profinet"
+      },
+      {
+       "text": "IEC 60870-5-104",
+       "link": "/scada/IEC60870-5-104"
+      },
+      {
+       "text": "Custom Detections",
+       "link": "/scada/custom_detections"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Quality of Experience (QoE)",
+     "link": "/qoe/",
+     "items": [
+      {
+       "text": "TCP-based Protocols",
+       "link": "/qoe/tcp"
+      },
+      {
+       "text": "UDP-based Protocols (QUIC and RTP)",
+       "link": "/qoe/udp"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "ASN and BGP Flow Monitoring",
+     "link": "/asmode/",
+     "items": [
+      {
+       "text": "Configuration",
+       "link": "/asmode/configuration"
+      },
+      {
+       "text": "Using AS Mode",
+       "link": "/asmode/asmode"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Operating ntopng on large networks",
+     "link": "/operating_ntopng_on_large_networks"
+    },
+    {
+     "text": "Flows Dump (ClickHouse)",
+     "link": "/flow_dump/",
+     "items": [
+      {
+       "text": "ClickHouse (Flow Dump)",
+       "link": "/flow_dump/clickhouse/",
+       "items": [
+        {
+         "text": "Installation",
+         "link": "/flow_dump/clickhouse/installation"
+        },
+        {
+         "text": "Connect to ClickHouse",
+         "link": "/flow_dump/clickhouse/clickhouse"
+        },
+        {
+         "text": "ClickHouse DB Schema",
+         "link": "/flow_dump/clickhouse/clickhouse_schema"
+        },
+        {
+         "text": "Historical",
+         "link": "/flow_dump/clickhouse/historical_flows"
+        },
+        {
+         "text": "Traffic Reports",
+         "link": "/flow_dump/clickhouse/reports"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Kafka",
+       "link": "/flow_dump/kafka/",
+       "items": [
+        {
+         "text": "Exporting Flows to Kafka",
+         "link": "/flow_dump/kafka/export_flows"
+        },
+        {
+         "text": "Collecting nProbe Flows Using Kafka",
+         "link": "/flow_dump/kafka/collect_flows"
+        },
+        {
+         "text": "Sending Messages to Kafka",
+         "link": "/flow_dump/kafka/send_kafka_messages"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Syslog",
+       "link": "/flow_dump/syslog/"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Advanced Features",
+     "link": "/advanced_features/",
+     "items": [
+      {
+       "text": "Bridging and Traffic Policing",
+       "link": "/advanced_features/bridging_and_policing"
+      },
+      {
+       "text": "IDS Acceleration",
+       "link": "/advanced_features/ids_acceleration"
+      },
+      {
+       "text": "Interfaces",
+       "link": "/advanced_features/interfaces/",
+       "items": [
+        {
+         "text": "Packet vs ZMQ Interfaces",
+         "link": "/advanced_features/interfaces/packet_vs_zmq"
+        },
+        {
+         "text": "View Interfaces",
+         "link": "/advanced_features/interfaces/view_interfaces"
+        },
+        {
+         "text": "Interfaces vs View Interfaces",
+         "link": "/advanced_features/interfaces/interfaces_vs_view_interfaces"
+        },
+        {
+         "text": "Interfaces Disaggregation",
+         "link": "/advanced_features/interfaces/dynamic_interfaces_disaggregation"
+        },
+        {
+         "text": "Using nTap as Virtual Tap with ntopng",
+         "link": "/advanced_features/interfaces/ntap_interface"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Light View",
+       "link": "/advanced_features/lightview/"
+      },
+      {
+       "text": "Live Pcap Download",
+       "link": "/advanced_features/live_pcap_download"
+      },
+      {
+       "text": "Flow Deduplication",
+       "link": "/advanced_features/deduplication"
+      },
+      {
+       "text": "OEM Customizations",
+       "link": "/advanced_features/oem"
+      },
+      {
+       "text": "Snapshots",
+       "link": "/advanced_features/snapshots"
+      },
+      {
+       "text": "Syslog Log Ingestion",
+       "link": "/advanced_features/syslog"
+      },
+      {
+       "text": "ClickHouse Timeseries",
+       "link": "/advanced_features/clickhouse_timeseries"
+      },
+      {
+       "text": "Observability",
+       "link": "/advanced_features/high_resolution_timeseries"
+      },
+      {
+       "text": "Assets Journal",
+       "link": "/advanced_features/assets_journal"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Third-Party Integrations",
+     "link": "/third_party_integrations/",
+     "items": [
+      {
+       "text": "OPNsense",
+       "link": "/third_party_integrations/opnsense"
+      },
+      {
+       "text": "pfSense",
+       "link": "/third_party_integrations/pfsense"
+      },
+      {
+       "text": "Suricata Integration",
+       "link": "/third_party_integrations/suricata"
+      },
+      {
+       "text": "Kibana",
+       "link": "/third_party_integrations/kibana"
+      },
+      {
+       "text": "Grafana",
+       "link": "/third_party_integrations/grafana"
+      },
+      {
+       "text": "Checkmk Integration",
+       "link": "/third_party_integrations/checkmk"
+      },
+      {
+       "text": "Wazuh Integration",
+       "link": "/third_party_integrations/wazuh"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "Performance and Hardware Sizing",
+     "link": "/performances/",
+     "items": [
+      {
+       "text": "Hardware Sizing",
+       "link": "/performances/hardware_sizing"
+      },
+      {
+       "text": "Flow Collection Performance",
+       "link": "/performances/flow_collection"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "FAQ",
+     "link": "/faq"
+    }
+   ]
+  },
+  {
+   "text": "Developer's Guide",
+   "items": [
+    {
+     "text": "Developers",
+     "link": "/scripts/",
+     "items": [
+      {
+       "text": "Overview",
+       "link": "/scripts/overview"
+      },
+      {
+       "text": "Alerts",
+       "link": "/scripts/developing_alerts",
+       "items": [
+        {
+         "text": "Other Alerts (Interface, MAC, Local Networks, SNMP, System, User)",
+         "link": "/scripts/other_alerts"
+        },
+        {
+         "text": "Flow/Host Alerts",
+         "link": "/scripts/flow_host_alerts"
+        },
+        {
+         "text": "Syslog Checks",
+         "link": "/scripts/syslog_checks"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Endpoints",
+       "link": "/scripts/alert_endpoints"
+      },
+      {
+       "text": "Localization",
+       "link": "/scripts/localization"
+      },
+      {
+       "text": "Timeseries Schemas",
+       "link": "/scripts/timeseries_schemas"
+      }
+     ],
+     "collapsed": true
+    },
+    {
+     "text": "API Documentation",
+     "link": "/api/",
+     "items": [
+      {
+       "text": "RESTful API",
+       "link": "/api/rest/",
+       "items": [
+        {
+         "text": "RESTful API v2 Specification",
+         "link": "/api/rest/api_v2"
+        },
+        {
+         "text": "Examples v2",
+         "link": "/api/rest/examples_v2"
+        },
+        {
+         "text": "RESTful API v1 Specification",
+         "link": "/api/rest/api_v1"
+        },
+        {
+         "text": "Examples v1",
+         "link": "/api/rest/examples_v1"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Lua API",
+       "link": "/api/lua_c/",
+       "items": [
+        {
+         "text": "ntop Lua Object",
+         "link": "/api/lua_c/ntop/",
+         "items": [
+          {
+           "text": "Cache API",
+           "link": "/api/lua_c/ntop/ntop_cache"
+          },
+          {
+           "text": "Prefs API",
+           "link": "/api/lua_c/ntop/ntop_prefs"
+          },
+          {
+           "text": "Filesystem API",
+           "link": "/api/lua_c/ntop/ntop_fs"
+          },
+          {
+           "text": "Network API",
+           "link": "/api/lua_c/ntop/ntop_network"
+          },
+          {
+           "text": "Users API",
+           "link": "/api/lua_c/ntop/ntop_users"
+          },
+          {
+           "text": "Misc API",
+           "link": "/api/lua_c/ntop/ntop_misc"
+          }
+         ],
+         "collapsed": true
+        },
+        {
+         "text": "interface Lua Object",
+         "link": "/api/lua_c/interface/",
+         "items": [
+          {
+           "text": "Hosts API",
+           "link": "/api/lua_c/interface/interface_hosts"
+          },
+          {
+           "text": "Flows API",
+           "link": "/api/lua_c/interface/interface_flows"
+          },
+          {
+           "text": "Misc API",
+           "link": "/api/lua_c/interface/interface_misc"
+          },
+          {
+           "text": "MACs API",
+           "link": "/api/lua_c/interface/interface_macs"
+          },
+          {
+           "text": "nDPI API",
+           "link": "/api/lua_c/interface/interface_ndpi"
+          },
+          {
+           "text": "Dump API",
+           "link": "/api/lua_c/interface/interface_dump"
+          }
+         ],
+         "collapsed": true
+        },
+        {
+         "text": "Host Checks",
+         "link": "/api/lua_c/host_checks/"
+        },
+        {
+         "text": "Flow Checks",
+         "link": "/api/lua_c/flow_checks/",
+         "items": [
+          {
+           "text": "Writing Custom Flow Scripts: Guide and Examples",
+           "link": "/api/lua_c/flow_checks/examples"
+          }
+         ],
+         "collapsed": true
+        },
+        {
+         "text": "Interface Checks",
+         "link": "/api/lua_c/interface_checks/"
+        },
+        {
+         "text": "Network Checks",
+         "link": "/api/lua_c/network_checks/"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Python API",
+       "link": "/api/python/"
+      },
+      {
+       "text": "Timeseries API",
+       "link": "/api/timeseries/",
+       "items": [
+        {
+         "text": "Basic Concepts",
+         "link": "/api/timeseries/intro"
+        },
+        {
+         "text": "Exporting Data",
+         "link": "/api/timeseries/export"
+        },
+        {
+         "text": "Modify an existing Schema",
+         "link": "/api/timeseries/change_schema"
+        },
+        {
+         "text": "Adding New Metrics",
+         "link": "/api/timeseries/adding_new_timeseries"
+        },
+        {
+         "text": "Accessing Metrics",
+         "link": "/api/timeseries/accessing_metrics"
+        },
+        {
+         "text": "Metrics",
+         "link": "/api/timeseries/metrics"
+        },
+        {
+         "text": "Querying Data",
+         "link": "/api/timeseries/queries"
+        },
+        {
+         "text": "ts_utils API",
+         "link": "/api/timeseries/ts_utils"
+        },
+        {
+         "text": "Driver Implementation",
+         "link": "/api/timeseries/driver"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Alerts API",
+       "link": "/api/alerts/",
+       "items": [
+        {
+         "text": "alert_api API",
+         "link": "/api/alerts/alerts_api"
+        }
+       ],
+       "collapsed": true
+      },
+      {
+       "text": "Recording API",
+       "link": "/api/recording/",
+       "items": [
+        {
+         "text": "recording_utils API",
+         "link": "/api/recording/recording_utils"
+        }
+       ],
+       "collapsed": true
+      }
+     ],
+     "collapsed": true
+    }
+   ]
+  }
+ ],
+ "external": [
+  {
+   "text": "nProbe",
+   "link": "https://www.ntop.org/guides/nprobe/"
+  },
+  {
+   "text": "nProbe Cento",
+   "link": "https://www.ntop.org/guides/cento/"
+  },
+  {
+   "text": "n2disk",
+   "link": "https://www.ntop.org/guides/n2disk/"
+  },
+  {
+   "text": "nDPI",
+   "link": "https://www.ntop.org/guides/nDPI/"
+  },
+  {
+   "text": "PF_RING",
+   "link": "https://www.ntop.org/guides/pf_ring/"
+  },
+  {
+   "text": "nEdge",
+   "link": "https://www.ntop.org/guides/nedge/"
+  },
+  {
+   "text": "nEdge Lite",
+   "link": "https://www.ntop.org/guides/nedgelite/"
+  },
+  {
+   "text": "nScrub",
+   "link": "https://www.ntop.org/guides/nscrub/"
+  },
+  {
+   "text": "nBox",
+   "link": "https://www.ntop.org/guides/nbox/"
+  },
+  {
+   "text": "nTap",
+   "link": "https://www.ntop.org/guides/ntap/"
+  },
+  {
+   "text": "License Manager",
+   "link": "https://www.ntop.org/guides/license/"
+  }
+ ],
+ "pages": {
+  "advanced_features/assets_journal": "Assets Journal",
+  "advanced_features/bridging_and_policing": "Bridging and Traffic Policing",
+  "advanced_features/clickhouse_timeseries": "ClickHouse Timeseries",
+  "advanced_features/deduplication": "Flow Deduplication",
+  "advanced_features/high_resolution_timeseries": "Observability",
+  "advanced_features/ids_acceleration": "IDS Acceleration",
+  "advanced_features/index": "Advanced Features",
+  "advanced_features/interfaces/dynamic_interfaces_disaggregation": "Interfaces Disaggregation",
+  "advanced_features/interfaces/index": "Interfaces",
+  "advanced_features/interfaces/interfaces_vs_view_interfaces": "Interfaces vs View Interfaces",
+  "advanced_features/interfaces/ntap_interface": "Using nTap as Virtual Tap with ntopng",
+  "advanced_features/interfaces/packet_vs_zmq": "Packet vs ZMQ Interfaces",
+  "advanced_features/interfaces/view_interfaces": "View Interfaces",
+  "advanced_features/lightview/index": "Light View",
+  "advanced_features/live_pcap_download": "Live Pcap Download",
+  "advanced_features/oem": "OEM Customizations",
+  "advanced_features/snapshots": "Snapshots",
+  "advanced_features/ssl": "SSL/HTTPS",
+  "advanced_features/syslog": "Syslog Log Ingestion",
+  "api/alerts/alerts_api": "alert_api API",
+  "api/alerts/index": "Alerts API",
+  "api/index": "API Documentation",
+  "api/lua_c/flow_checks/examples": "Writing Custom Flow Scripts: Guide and Examples",
+  "api/lua_c/flow_checks/index": "Flow Checks",
+  "api/lua_c/host_checks/index": "Host Checks",
+  "api/lua_c/index": "Lua API",
+  "api/lua_c/interface/index": "interface Lua Object",
+  "api/lua_c/interface/interface_dump": "Dump API",
+  "api/lua_c/interface/interface_flows": "Flows API",
+  "api/lua_c/interface/interface_hosts": "Hosts API",
+  "api/lua_c/interface/interface_macs": "MACs API",
+  "api/lua_c/interface/interface_misc": "Misc API",
+  "api/lua_c/interface/interface_ndpi": "nDPI API",
+  "api/lua_c/interface_checks/index": "Interface Checks",
+  "api/lua_c/network_checks/index": "Network Checks",
+  "api/lua_c/ntop/index": "ntop Lua Object",
+  "api/lua_c/ntop/ntop_cache": "Cache API",
+  "api/lua_c/ntop/ntop_fs": "Filesystem API",
+  "api/lua_c/ntop/ntop_misc": "Misc API",
+  "api/lua_c/ntop/ntop_network": "Network API",
+  "api/lua_c/ntop/ntop_prefs": "Prefs API",
+  "api/lua_c/ntop/ntop_users": "Users API",
+  "api/python/index": "Python API",
+  "api/recording/index": "Recording API",
+  "api/recording/recording_utils": "recording_utils API",
+  "api/rest/api_v1": "RESTful API v1 Specification",
+  "api/rest/api_v2": "RESTful API v2 Specification",
+  "api/rest/examples_v1": "Examples v1",
+  "api/rest/examples_v2": "Examples v2",
+  "api/rest/index": "RESTful API",
+  "api/timeseries/accessing_metrics": "Accessing Metrics",
+  "api/timeseries/adding_new_timeseries": "Adding New Metrics",
+  "api/timeseries/change_schema": "Modify an existing Schema",
+  "api/timeseries/driver": "Driver Implementation",
+  "api/timeseries/export": "Exporting Data",
+  "api/timeseries/index": "Timeseries API",
+  "api/timeseries/intro": "Basic Concepts",
+  "api/timeseries/metrics": "Metrics",
+  "api/timeseries/queries": "Querying Data",
+  "api/timeseries/ts_utils": "ts_utils API",
+  "asmode/asmode": "Using AS Mode",
+  "asmode/configuration": "Configuration",
+  "asmode/index": "ASN and BGP Flow Monitoring",
+  "authentication": "User Authentication",
+  "basic_concepts/alerts": "Alerts",
+  "basic_concepts/disk_space": "Disk Space Requirements",
+  "basic_concepts/geolocation": "Geolocation",
+  "basic_concepts/host_pools": "Host Pools",
+  "basic_concepts/hosts": "Hosts",
+  "basic_concepts/index": "Basic Concepts",
+  "basic_concepts/interfaces": "Network Interfaces",
+  "basic_concepts/local_broadcast_domain": "Local Broadcast Domain",
+  "basic_concepts/scripts": "Scripts and Checks",
+  "basic_concepts/stats": "Statistics",
+  "basic_concepts/system_interface": "System Interface",
+  "basic_concepts/timeseries": "Timeseries",
+  "cli_options/cli_options": "Command Line Options",
+  "cli_options/cli_options_example": "Configuration File Example",
+  "cli_options/index": "Command Line Options",
+  "faq": "FAQ",
+  "flow_dump/clickhouse/clickhouse": "Connect to ClickHouse",
+  "flow_dump/clickhouse/clickhouse_schema": "ClickHouse DB Schema",
+  "flow_dump/clickhouse/historical_flow_analysis_json_example": "Historical Flow Analysis JSON Example",
+  "flow_dump/clickhouse/historical_flows": "Historical",
+  "flow_dump/clickhouse/historical_flows_archive": "historical flows archive",
+  "flow_dump/clickhouse/index": "ClickHouse (Flow Dump)",
+  "flow_dump/clickhouse/installation": "Installation",
+  "flow_dump/clickhouse/reports": "Traffic Reports",
+  "flow_dump/elasticsearch/index": "ElasticSearch",
+  "flow_dump/index": "Flows Dump (ClickHouse)",
+  "flow_dump/kafka/collect_flows": "Collecting nProbe Flows Using Kafka",
+  "flow_dump/kafka/export_flows": "Exporting Flows to Kafka",
+  "flow_dump/kafka/index": "Kafka",
+  "flow_dump/kafka/send_kafka_messages": "Sending Messages to Kafka",
+  "flow_dump/syslog/index": "Syslog",
+  "flows/exporters": "Flow Exporters",
+  "flows/exporters_bandwidth_usage": "Exporter Interfaces Bandwidth Usage per Application",
+  "flows/index": "Flow Collection",
+  "flows/nprobe": "What nProbe Does",
+  "how_to_start/configuration_file": "The ntopng Configuration File",
+  "how_to_start/index": "How to Start ntopng",
+  "how_to_start/running_as_a_daemon": "Running ntopng as a Daemon",
+  "how_to_start/running_on_windows": "Running on Windows",
+  "img/wazuh": "Wazuh Alerts Collection",
+  "index": "ntopng Documentation",
+  "installation": "Installation",
+  "nanalyst/ai_dashboards": "AI Dashboards",
+  "nanalyst/architecture": "Architecture",
+  "nanalyst/chat_interface": "Chat Interface",
+  "nanalyst/faq": "Frequently Asked Questions",
+  "nanalyst/features/active_monitoring": "Active Monitoring Automation",
+  "nanalyst/features/alert_management": "Alert Management",
+  "nanalyst/features/audit_log": "Action Audit Log",
+  "nanalyst/features/index": "Features",
+  "nanalyst/features/no_black_box": "Explainability \u2014 No Black Box",
+  "nanalyst/features/policies": "AI-Generated Network Policies",
+  "nanalyst/features/usage_stats": "Usage Statistics",
+  "nanalyst/index": "nAnalyst - Agentic AI Network Intelligence",
+  "nanalyst/llm_setup": "LLM Setup",
+  "nanalyst/mcp_client": "External MCP Servers",
+  "nanalyst/mcp_server": "MCP Server",
+  "nanalyst/observability": "Observability",
+  "nanalyst/tools_and_licensing": "Tools and Licensing",
+  "nanalyst/what_is_nanalyst": "What is nAnalyst?",
+  "operating_ntopng_on_large_networks": "Operating ntopng on large networks",
+  "pages/nanalyst": "nAnalyst",
+  "performances/flow_collection": "Flow Collection Performance",
+  "performances/hardware_sizing": "Hardware Sizing",
+  "performances/index": "Performance and Hardware Sizing",
+  "qoe/index": "Quality of Experience (QoE)",
+  "qoe/tcp": "TCP-based Protocols",
+  "qoe/udp": "UDP-based Protocols (QUIC and RTP)",
+  "scada/IEC60870-5-104": "IEC 60870-5-104",
+  "scada/custom_detections": "Custom Detections",
+  "scada/index": "Industrial Monitoring",
+  "scada/modbus": "ModbusTCP",
+  "scada/profinet": "PROFINET",
+  "scada/s7comm": "S7Comm",
+  "scripts/alert_endpoints": "Endpoints",
+  "scripts/developing_alerts": "Alerts",
+  "scripts/flow_host_alerts": "Flow/Host Alerts",
+  "scripts/host_alert_example": "Simple Host Alert Example",
+  "scripts/index": "Developers",
+  "scripts/localization": "Localization",
+  "scripts/other_alerts": "Other Alerts (Interface, MAC, Local Networks, SNMP, System, User)",
+  "scripts/overview": "Overview",
+  "scripts/syslog_checks": "Syslog Checks",
+  "scripts/threshold_example": "Other Alerts Threshold Example",
+  "scripts/timeseries_schemas": "Timeseries Schemas",
+  "third_party_integrations/checkmk": "Checkmk Integration",
+  "third_party_integrations/grafana": "Grafana",
+  "third_party_integrations/index": "Third-Party Integrations",
+  "third_party_integrations/kibana": "Kibana",
+  "third_party_integrations/netbox": "NetBox",
+  "third_party_integrations/opnsense": "OPNsense",
+  "third_party_integrations/pfsense": "pfSense",
+  "third_party_integrations/suricata": "Suricata Integration",
+  "third_party_integrations/wazuh": "Wazuh Integration",
+  "use_cases/index": "Use Cases",
+  "use_cases/infrastructure_monitoring": "Infrastructure Monitoring",
+  "use_cases/large_networks": "Monitoring Large Networks",
+  "use_cases/mikrotik": "Mikrotik",
+  "use_cases/mirror_tap_monitoring": "Mirror/SPAN/TAP Monitoring",
+  "use_cases/multiple_locations_monitoring": "Monitoring Multiple Locations",
+  "use_cases/netflow_sflow_monitoring": "Netflow/sFlow Monitoring",
+  "use_cases/processes_monitoring": "Processes Monitoring",
+  "use_cases/snmp_monitoring": "SNMP Monitoring",
+  "use_cases/suricata": "Suricata",
+  "user_interface/index": "User Interface Guide",
+  "user_interface/network_interface/alerts/flow_alerts_analyser": "Flow Alerts Analyser",
+  "user_interface/network_interface/dashboard/dashboard": "Traffic Dashboard",
+  "user_interface/network_interface/flow_exporters/index": "sFlow/NetFlow Collection",
+  "user_interface/network_interface/flows/flows": "Flows",
+  "user_interface/network_interface/flows/server_ports": "Server Ports",
+  "user_interface/network_interface/hosts/hosts": "Hosts",
+  "user_interface/network_interface/index": "Network Interface",
+  "user_interface/network_interface/interface/assets": "Assets Inventory",
+  "user_interface/network_interface/interface/autonomous_systems": "Autonomous Systems",
+  "user_interface/network_interface/interface/containers": "Pods and Containers",
+  "user_interface/network_interface/interface/countries": "Countries",
+  "user_interface/network_interface/interface/host_pools": "Host Pools",
+  "user_interface/network_interface/interface/interfaces": "Details",
+  "user_interface/network_interface/interface/live_captures": "Live Captures",
+  "user_interface/network_interface/interface/networks": "Networks",
+  "user_interface/network_interface/interface/operating_systems": "Operating Systems",
+  "user_interface/network_interface/interface/sites": "Sites",
+  "user_interface/network_interface/interface/traffic_report": "Traffic Report",
+  "user_interface/network_interface/interface/vlans": "VLANs",
+  "user_interface/network_interface/maps/analysis_map": "Analysis",
+  "user_interface/network_interface/maps/geo_map": "Geo Map",
+  "user_interface/network_interface/maps/host_map": "Hosts",
+  "user_interface/network_interface/monitoring/active_scan": "Active Scan",
+  "user_interface/network_interface/monitoring/network_discovery": "Network Discovery",
+  "user_interface/shared/alerts/alerts_explorer": "Alerts Explorer",
+  "user_interface/shared/alerts/alerts_type/engaged_alerts": "Engaged Alerts",
+  "user_interface/shared/alerts/alerts_type/flow_alerts": "Flow Alerts",
+  "user_interface/shared/alerts/alerts_type/past_alerts": "Past Alerts",
+  "user_interface/shared/alerts/available_endpoints": "Notifications",
+  "user_interface/shared/alerts/issues": "Issues",
+  "user_interface/shared/alerts/others/active_monitoring_checks": "Active Monitoring Behavioural Checks",
+  "user_interface/shared/alerts/others/alerts_filters": "Alerts Filters",
+  "user_interface/shared/alerts/others/alerts_graph": "Alerts Graph",
+  "user_interface/shared/alerts/others/alerts_list_per_license": "Alerts List per License",
+  "user_interface/shared/alerts/others/as_checks": "Autonomous Systems Behavioural Checks",
+  "user_interface/shared/alerts/others/available_alerts": "Behavioural Checks",
+  "user_interface/shared/alerts/others/behavioural_checks_exclusion": "Behavioural Checks Exclusion",
+  "user_interface/shared/alerts/others/custom_queries": "Custom Queries",
+  "user_interface/shared/alerts/others/flow_checks": "Flow Behavioural Checks",
+  "user_interface/shared/alerts/others/host_checks": "Host Behavioural Checks",
+  "user_interface/shared/alerts/others/interface_checks": "Interface Behavioural Checks",
+  "user_interface/shared/alerts/others/local_network_checks": "Local Networks Behavioural Checks",
+  "user_interface/shared/alerts/others/mitre_classification": "Mitre Classification",
+  "user_interface/shared/alerts/others/snmp_checks": "SNMP Behavioural Checks",
+  "user_interface/shared/alerts/others/syslog_checks": "Syslog Behavioural Checks",
+  "user_interface/shared/alerts/others/system_checks": "System Behavioural Checks",
+  "user_interface/shared/alerts/remediations/host_risks": "Remediations for Host Risks",
+  "user_interface/shared/alerts/remediations/index": "Remediations",
+  "user_interface/shared/alerts/remediations/ndpi_flow_risks": "Remediations for nDPI Risks",
+  "user_interface/shared/alerts/remediations/ntopng_flow_risks": "Remediations for ntopng Flow Risks",
+  "user_interface/shared/developer/alert_and_flow_status_definitions": "Alert and Flow Status Definitions",
+  "user_interface/shared/developer/analyze_pcap_file": "Analyze PCAP File",
+  "user_interface/shared/developer/behavioural_checks": "Behavioural Checks",
+  "user_interface/shared/developer/clickhouse_explorer": "ClickHouse Explorer",
+  "user_interface/shared/developer/directories": "Directiories",
+  "user_interface/shared/developer/manage_data": "Manage Data",
+  "user_interface/shared/developer/rest_api": "REST API",
+  "user_interface/shared/help/about": "About",
+  "user_interface/shared/help/index": "Help",
+  "user_interface/shared/help/ntop_blog": "ntop Blog",
+  "user_interface/shared/help/report_an_issue": "Report an Issue",
+  "user_interface/shared/monitoring/active_monitoring": "Active Monitoring",
+  "user_interface/shared/monitoring/infrastructure_monitoring": "Infrastructure Monitoring",
+  "user_interface/shared/other_components": "Other Pages and Info",
+  "user_interface/shared/policies/access_control_list": "Access Control List",
+  "user_interface/shared/policies/allowed_applications": "Allowed Applications",
+  "user_interface/shared/policies/device_mac_address_tracking": "Device/MAC Address Tracking",
+  "user_interface/shared/policies/index": "Policies",
+  "user_interface/shared/policies/network_configuration": "Host Policy",
+  "user_interface/shared/policies/traffic_profiles": "Traffic Profiles",
+  "user_interface/shared/policies/traffic_rules": "Traffic Rules",
+  "user_interface/shared/settings/applications_and_categories": "Applications and Categories",
+  "user_interface/shared/settings/blacklists": "Blacklists",
+  "user_interface/shared/settings/configurations": "Configurations",
+  "user_interface/shared/settings/preferences": "Preferences",
+  "user_interface/shared/settings/tags": "Tags",
+  "user_interface/shared/settings/users": "Users",
+  "user_interface/shared/snmp/configuration": "Configuration and Discovery",
+  "user_interface/shared/snmp/index": "SNMP",
+  "user_interface/shared/snmp/monitoring": "Device Monitoring",
+  "user_interface/shared/snmp/rules": "Device rules",
+  "user_interface/shared/snmp/similarity": "Interface Similarity",
+  "user_interface/shared/snmp/statistics_and_troubleshooting": "Statistics and Troubleshooting",
+  "user_interface/shared/snmp/topology": "Network Topology",
+  "user_interface/shared/snmp/usage": "SNMP Usage",
+  "user_interface/system_interface/health/clickhouse": "ClickHouse",
+  "user_interface/system_interface/health/index": "Health",
+  "user_interface/system_interface/health/influxdb": "InfluxDB",
+  "user_interface/system_interface/health/influxdb_schema": "InfluxDB Schema",
+  "user_interface/system_interface/health/interfaces": "Interfaces",
+  "user_interface/system_interface/health/redis": "Redis",
+  "user_interface/system_interface/health/system": "System",
+  "user_interface/system_interface/index": "System Interface",
+  "using_with_nprobe": "Using ntopng with nProbe",
+  "using_with_nprobe_agent": "Using ntopng with nProbe Agent",
+  "using_with_other_tools/cento": "Using ntopng with nProbe Cento",
+  "using_with_other_tools/index": "Using ntopng with ntop Tools",
+  "using_with_other_tools/n2disk": "Using ntopng with n2disk",
+  "using_with_other_tools/nedgelite": "Using ntopng with nEdgeLite",
+  "using_with_other_tools/nprobe": "Using ntopng with nProbe",
+  "using_with_other_tools/nprobe_collector_mode": "Using ntopng with nProbe (Collector Mode)",
+  "using_with_other_tools/nprobeagent": "Using ntopng with nProbe Agent",
+  "versions_and_licensing": "Available Versions & Licensing",
+  "what_is_ntopng": "What is ntopng"
+ }
+}
