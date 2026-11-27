@@ -941,6 +941,167 @@ local lang = {
   ["set"] = "Set",
   ["settings"] = "Settings",
   ["setup"] = "Setup",
+  ["setup_wizard"] = {
+    ["apply"] = {
+      ["conf_failed"] = "The configuration file could not be written. Check that ntopng can write it.",
+      ["finish"] = "Finish",
+      ["intro"] = "Review the changes to the configuration file. Runtime settings are already applied.",
+      ["manual_restart"] = "Restart ntopng to apply the changes: ntopng cannot restart itself here.",
+      ["not_writable"] = "ntopng cannot write %{file}. Fix its permissions and try again.",
+      ["nothing_to_write"] = "No changes to the configuration file.",
+      ["restart_failed"] = "ntopng could not restart itself. Restart it manually to apply the changes.",
+      ["restarting"] = "Restarting ntopng, this page reloads when it is back.",
+      ["save_and_restart"] = "Save and Restart",
+      ["save_only"] = "Save Only",
+      ["saved"] = "Saved. Restart ntopng to apply the changes to the configuration file.",
+      ["will_write"] = "These options will be written in %{file}:",
+    },
+    ["asn_mode"] = {
+      ["intro"] = "Group the dashboard by Autonomous System. Useful when ntopng receives flows from routers over ZMQ.",
+    },
+    ["back"] = "Back",
+    ["fields"] = {
+      ["active_monitoring"] = {
+        ["description"] = "Checks the reachability and latency of hosts and services you define. Add the measurements later in Active Monitoring.",
+        ["title"] = "Active Monitoring",
+      },
+      ["asn_mode"] = {
+        ["description"] = "Shows traffic grouped by Autonomous System instead of by host. Meant for ZMQ collectors that receive flows from routers.",
+        ["title"] = "AS Mode",
+      },
+      ["dump_clickhouse"] = {
+        ["description"] = "Stores every flow in ClickHouse for historical analysis (-F). Needs the Enterprise M license.",
+        ["title"] = "Dump Flows to ClickHouse",
+      },
+      ["dump_flows_custom"] = {
+        ["description"] = "Optional connection string of the ClickHouse server. Leave empty to use the local one.",
+        ["placeholder"] = "clickhouse",
+        ["title"] = "ClickHouse Connection",
+      },
+      ["extra_interfaces"] = {
+        ["description"] = "Comma separated collector endpoints. Use it for NetFlow/sFlow collectors (nProbe over ZMQ) and Kafka.",
+        ["placeholder"] = "tcp://*:5556",
+        ["title"] = "ZMQ and Kafka Endpoints",
+      },
+      ["flows_retention_days"] = {
+        ["description"] = "Days of flows and alerts kept in ClickHouse. Older data is deleted.",
+        ["title"] = "Flows Retention (Days)",
+      },
+      ["http_port"] = {
+        ["description"] = "Port of the web interface (-w). Use 0 to disable HTTP and keep only HTTPS.",
+        ["title"] = "HTTP Port",
+      },
+      ["https_port"] = {
+        ["description"] = "Port of the secure web interface (-W). Leave empty to disable HTTPS.",
+        ["title"] = "HTTPS Port",
+      },
+      ["interfaces"] = {
+        ["description"] = "Interfaces ntopng monitors (-i). The list shows the interfaces of this system.",
+        ["title"] = "Network Interfaces",
+      },
+      ["local_networks"] = {
+        ["description"] = "Networks ntopng considers local (-m), comma separated. The networks of the interfaces are always local.",
+        ["placeholder"] = "192.168.1.0/24,10.0.0.0/8",
+        ["title"] = "Local Networks",
+      },
+      ["max_flows"] = {
+        ["description"] = "Approximate maximum number of active flows kept in memory (-X). Leave empty for the default.",
+        ["title"] = "Maximum Flows",
+      },
+      ["max_hosts"] = {
+        ["description"] = "Maximum number of hosts kept in memory (-x). Leave empty for the default.",
+        ["title"] = "Maximum Hosts",
+      },
+      ["rrd_retention_days"] = {
+        ["description"] = "Days the RRD timeseries files are kept.",
+        ["title"] = "RRD Retention (Days)",
+      },
+      ["snmp_timeseries"] = {
+        ["description"] = "Stores the traffic of SNMP device ports as timeseries. Needs the Enterprise M license.",
+        ["title"] = "SNMP Timeseries",
+      },
+      ["timeseries_driver"] = {
+        ["description"] = "Where the timeseries are stored: RRD files on disk, or ClickHouse.",
+        ["title"] = "Timeseries Driver",
+      },
+      ["ts_asn"] = {
+        ["description"] = "Timeseries of every Autonomous System. Needs the Enterprise M license.",
+        ["title"] = "Autonomous Systems",
+      },
+      ["ts_countries"] = {
+        ["description"] = "Timeseries of the traffic of every country. Needs the Enterprise M license.",
+        ["title"] = "Countries",
+      },
+      ["ts_flow_exporters"] = {
+        ["description"] = "Timeseries of flow exporters and their interfaces. Needs the Enterprise M license.",
+        ["title"] = "Flow Exporters",
+      },
+      ["ts_hosts"] = {
+        ["description"] = "Timeseries of the local hosts: Light keeps the traffic, Full adds the applications.",
+        ["title"] = "Local Hosts",
+      },
+      ["ts_interface"] = {
+        ["description"] = "Traffic timeseries of every interface.",
+        ["title"] = "Interfaces",
+      },
+      ["ts_mac"] = {
+        ["description"] = "Timeseries of the traffic of every device (MAC address).",
+        ["title"] = "MAC Addresses",
+      },
+      ["ts_retention_days"] = {
+        ["description"] = "Days the timeseries and statistics are kept in ClickHouse.",
+        ["title"] = "Timeseries Retention (Days)",
+      },
+      ["ts_vlan"] = {
+        ["description"] = "Timeseries of the traffic of every VLAN.",
+        ["title"] = "VLANs",
+      },
+    },
+    ["flows_dump"] = {
+      ["intro"] = "Choose whether flows are stored for historical analysis.",
+    },
+    ["interfaces"] = {
+      ["intro"] = "Choose what ntopng monitors. Changes to the configuration file are written together in the last step.",
+    },
+    ["limits"] = {
+      ["intro"] = "Cap the memory used for hosts and flows. The defaults suit most networks.",
+    },
+    ["local_networks"] = {
+      ["intro"] = "Tell ntopng which networks are yours, so traffic is classified as local or remote.",
+    },
+    ["load_failed"] = "The Setup Wizard could not be loaded.",
+    ["monitoring"] = {
+      ["intro"] = "Turn on active monitoring and, with the Enterprise M license, add SNMP devices.",
+      ["open_snmp"] = "Open SNMP Devices",
+    },
+    ["needs_enterprise_m"] = "Needs the Enterprise M license.",
+    ["network_config"] = {
+      ["intro"] = "Define your networks and their policies in Network Configuration. This is applied immediately and can be done later.",
+      ["open"] = "Open Network Configuration",
+    },
+    ["next"] = "Next",
+    ["save_failed"] = "The values could not be saved. Check them and try again.",
+    ["setup_wizard"] = "Setup Wizard",
+    ["skip"] = "Skip",
+    ["steps"] = {
+      ["apply"] = "Apply",
+      ["asn_mode"] = "AS Mode",
+      ["flows_dump"] = "Flows",
+      ["interfaces"] = "Interfaces",
+      ["limits"] = "Limits",
+      ["local_networks"] = "Local Networks",
+      ["monitoring"] = "Monitoring",
+      ["network_config"] = "Networks",
+      ["timeseries"] = "Timeseries",
+      ["web"] = "Web Access",
+    },
+    ["timeseries"] = {
+      ["intro"] = "Choose where timeseries are stored and which ones are created. Changes are applied immediately.",
+    },
+    ["web"] = {
+      ["intro"] = "Set the ports of the web interface. The new address is used after the restart.",
+    },
+  },
   ["severity"] = "Severity",
   ["short_broadcast"] = "B",
   ["short_multicast"] = "M",
@@ -8438,6 +8599,11 @@ local lang = {
     ["password_pattern_error"] = "Please enter at least 5 valid characters.",
     ["password_ph"] = "Password (default admin)",
     ["passwords_dont_match"] = "Passwords don't match.",
+    ["flow_alert"] = "Alert",
+    ["flow_score"] = "Score",
+    ["scene_attack"] = "Spot attacks the moment they start",
+    ["scene_flows"] = "Turn flows into visibility",
+    ["scene_probes"] = "Collect traffic from every probe",
     ["session-expired"] = "Session expired. Please log in again.",
     ["sso_login"] = "Login with SSO",
     ["unable_to_login"] = "Unable to login?",
