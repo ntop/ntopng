@@ -1,0 +1,83 @@
+{
+	"id": "as_stats_transit",
+	"data_url": "lua/rest/v2/get/asn/get_transit_as_data.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": false,
+	"empty_message_i18n": "table_empty.as_stats_transit",
+	"default_sort": {
+		"column_id": "transit_traffic",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "transit_asn",
+			"title_i18n": "as_stats.transit_asn",
+			"data_field": "transit_asn",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "transit_as",
+			"title_i18n": "transit_as",
+			"data_field": "transit_as",
+			"sortable": true,
+			"class": [
+				"text-left",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "dst_asn",
+			"title_i18n": "as_stats.destination_asn",
+			"data_field": "dst_asn",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "dst_as",
+			"title_i18n": "as_stats.destination_as",
+			"data_field": "dst_as",
+			"sortable": true,
+			"class": [
+				"text-left",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "transit_share",
+			"title_i18n": "as_stats.transit_share",
+			"data_field": "transit_share",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"id": "transit_traffic",
+			"title_i18n": "as_stats.transit_traffic",
+			"data_field": "transit_traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		},
+		{
+			"id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		}
+	]
+}

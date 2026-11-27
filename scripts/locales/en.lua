@@ -2397,12 +2397,17 @@ local lang = {
     ["all_roles"] = "All Roles",
     ["all_transit"] = "All Transit",
     ["autonomous_systems"] = "Autonomous Systems",
+    ["destination_as"] = "Destination AS",
+    ["destination_asn"] = "Destination ASN",
     ["in_iface_role"] = "Input Interface Role",
     ["interface_role"] = "Interface Role",
     ["interfaces"] = "Interfaces",
     ["out_iface_role"] = "Output Interface Role",
     ["since_startup_hint"] = "The table reports data cumulated since ntopng startup and does not follow the chart time range: historical tables require ClickHouse, while timeseries do not.",
     ["since_startup_hint_clickhouse"] = "The table reports data cumulated since ntopng startup. Select a time range other than Live to show the historical data stored in ClickHouse.",
+    ["transit_share"] = "Transit Share",
+    ["transit_asn"] = "Transit ASN",
+    ["transit_traffic"] = "Transit Traffic",
     ["ts_not_enabled"] = "Autonomous System timeseries are not enabled. Enable them in Preferences.",
   },
   ["asn_configuration"] = {
@@ -2430,6 +2435,7 @@ local lang = {
     ["sub_customer_asn_title"] = "My Customers ASNs",
     ["transit_asn_description"] = "ASNs of transit providers, that carry the traffic between this network and the rest of the Internet.",
     ["transit_asn_title"] = "Transit Providers",
+    ["transit_asns"] = "Transit ASNs",
   },
   ["asset_details"] = {
     ["assets"] = "Asset",
@@ -12257,6 +12263,7 @@ local lang = {
     ["assets"] = "No assets yet: the hosts seen on the interface are added to the inventory automatically",
     ["assets_snmp"] = "No SNMP assets yet: they are added when the SNMP devices are polled",
     ["as_stats"] = "No autonomous systems seen in this time range",
+    ["as_stats_transit"] = "No transit ASNs in this time range: they are the BGP peer ASNs of the flows that differ from the ASN of the flow endpoint",
     ["observation_point_exporters"] = "No flow exporters seen on this observation point",
   },
   ["table_page"] = {

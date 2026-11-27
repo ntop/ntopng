@@ -110,8 +110,7 @@ for key, value in pairs(ases_info or {}) do
     elseif value["asname"] then
         record["asname"] = value["asname"]
     else
-        local as_info = ntop.getASNameFromASN(asn)
-        record["asname"] = as_info and (as_info.description or as_info.handle) or nil
+        record["asname"] = format_utils.getASDisplayName(asn)
     end
 
     if not is_live then
@@ -140,18 +139,9 @@ if (perform_profiling) then
     traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("[ASN REST API][Time: %s] Start ASN Configuration parsing\n", os.time()))
 end
 
-local customer_asn, sub_customer_asn, remote_asn = as_utils.getAllConfigurations()
 for pos, value in pairs(res or {}) do
     if value.asn ~= nil then
-        local as = tostring(value.asn)
-        if customer_asn[as] then
-            value.is_customer_asn = true
-        elseif sub_customer_asn[as] then
-            value.is_sub_customer_asn = true
-        elseif remote_asn[as] then
-            value.is_remote_asn = true
-        end
-        value.asn_category = as_utils.getASNCategory(as)
+        as_utils.addASNConfiguration(value, value.asn)
     end
 end
 

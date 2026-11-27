@@ -1695,7 +1695,7 @@ end
 -- #################################################################
 
 local function validateImportantASN(m)
-   return validateChoice({"all", "my_as", "my_customer_as", "remote_as", "other_as"}, m)
+   return validateChoice({"all", "my_as", "my_customer_as", "remote_as", "other_as", "transit_as"}, m)
 end
 
 -- #################################################################

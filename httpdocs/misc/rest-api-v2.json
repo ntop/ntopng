@@ -13945,6 +13945,68 @@
         }
       }
     },
+    "/lua/rest/v2/get/asn/get_transit_as_data.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get the traffic carried by the transit autonomous systems, per destination AS",
+        "description": "A transit AS is the BGP peer ASN of a flow endpoint (SRC_PEER_ASN, DST_PEER_ASN) other than the ASN of that endpoint; a flow counts once for each of its transit ASes, towards its destination AS. Live: the active flows of the interface. Historical (is_live=false, needs ClickHouse): the flows in [epoch_begin, epoch_end]. rsp is an array of records, one per transit AS and destination AS: transit_asn and dst_asn (ASN), transit_as and dst_as ({asn, asname (none for ASN 0, the private hosts, or an unknown ASN), is_customer_asn / is_sub_customer_asn / is_remote_asn, asn_category (ASN configuration)}), traffic (bytes from the transit AS to the destination AS), transit_traffic (bytes of the transit AS to all the destinations), transit_share (traffic as a percentage of transit_traffic).",
+        "operationId": "get_transit_as_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier (default: the current interface)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "is_live",
+            "in": "query",
+            "description": "true (default) live data, false historical data (ClickHouse)",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Historical only: start of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Historical only: end of the time range (epoch)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "interface_role",
+            "in": "query",
+            "description": "Enterprise M: all (default), ix, peering or transit (SNMP interface role)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-61": {
+            "description": "CLICKHOUSE_MISSING (historical data without ClickHouse)"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/asn/get_top_asn.lua": {
       "get": {
         "tags": [

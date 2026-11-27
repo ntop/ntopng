@@ -55,11 +55,16 @@ void ASNStats::incStats(Flow* flow) {
     flow->getSrcAS(&srcAS, &src_as_name);
     flow->getDstAS(&dstAS, &dst_as_name);
 
-    /* First handle the transit ASN */
-    if ((srcPeerAS || dstPeerAS) && (srcPeerAS != dstPeerAS)) {
-      if (srcAS != srcPeerAS) transit_asn.insert(srcPeerAS);
-      if (dstAS != dstPeerAS) transit_asn.insert(dstPeerAS);
-    }
+    /* First handle the transit ASN: a peer ASN other than the ASN of its
+       endpoint carries the flow towards the destination ASN (once if it is
+       both the source and the destination transit) */
+    u_int32_t src_transit_as = (srcPeerAS != srcAS) ? srcPeerAS : 0,
+              dst_transit_as = (dstPeerAS != dstAS) ? dstPeerAS : 0;
+
+    if (src_transit_as)
+      transit_asn[src_transit_as][dstAS] += flow->get_bytes();
+    if (dst_transit_as && (dst_transit_as != src_transit_as))
+      transit_asn[dst_transit_as][dstAS] += flow->get_bytes();
 
     /* Now handle the source ASN */
     it = src_asn.find(srcAS);
@@ -98,13 +103,22 @@ void ASNStats::incStats(Flow* flow) {
 /* *************************************** */
 
 void ASNStats::lua(lua_State* vm, bool show_all_stats) {
-  std::set<u_int32_t>::iterator it;
+  std::unordered_map<u_int32_t, std::unordered_map<u_int32_t, u_int64_t>>::iterator it;
+  std::unordered_map<u_int32_t, u_int64_t>::iterator dst_it;
   std::unordered_map<u_int32_t, ASNTrafficStats>::iterator it2;
 
-  /* Transit ASN */
+  /* Transit ASN: { [transit ASN] = 1 }, or { [transit ASN] = { [destination ASN] = bytes } } with all the stats */
   lua_newtable(vm);
   for (it = transit_asn.begin(); it != transit_asn.end(); it++) {
-    lua_push_uint32_table_entry(vm, std::to_string(*it).c_str(), 1);
+    if (show_all_stats) {
+      lua_newtable(vm);
+      for (dst_it = it->second.begin(); dst_it != it->second.end(); dst_it++)
+        lua_push_uint64_table_entry(vm, std::to_string(dst_it->first).c_str(), dst_it->second);
+      lua_pushstring(vm, std::to_string(it->first).c_str());
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    } else
+      lua_push_uint32_table_entry(vm, std::to_string(it->first).c_str(), 1);
   }
   lua_pushstring(vm, "transit_asn");
   lua_insert(vm, -2);
