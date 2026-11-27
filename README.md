@@ -28,16 +28,20 @@ If you want to learn more about ntopng please visit the [User's Guide](https://w
 
 ### Building the User's Guide
 
-The User's Guide is a [VitePress](https://vitepress.dev) project in `doc/nedge/src/` (Markdown pages, same
-URLs as the old Sphinx guide: `/guides/nedge/<page>.html`). Requires Node 18+ and `make`.
+The ntopng and nEdge User's Guides are [VitePress](https://vitepress.dev) projects (Markdown pages, same
+URLs as the old Sphinx guides). Requires Node 18+ and `make`.
+
+| Guide | Folder | URL |
+|---|---|---|
+| ntopng | `doc/src/` | `/guides/ntopng/<page>.html` |
+| nEdge | `doc/nedge/src/` | `/guides/nedge/<page>.html` |
 
 ```
-cd doc/nedge/src
-make dist      # build the static site into doc/nedge/src/dist (runs npm install if needed)
-make serve     # build, then serve it at http://localhost:4173/guides/nedge/   (PORT=8080 make serve)
+cd doc/src                # or doc/nedge/src
+make dist                 # build the static site into dist/ (runs npm install if needed)
+make serve                # build, then serve it at http://localhost:4173/guides/ntopng/   (PORT=8080 make serve)
+npm run dev               # live reload while editing: http://localhost:5173/guides/ntopng/
 ```
-
-For live reload while editing a page use `npm run dev` (http://localhost:5173/guides/nedge/).
 
 ### Details
 For more information about ntopng, please visit [http://ntop.org](https://www.ntop.org/products/traffic-analysis/ntop/)
