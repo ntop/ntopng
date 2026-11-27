@@ -1844,7 +1844,6 @@ local lang = {
     ["device_connection_disconnection"] = "Connessione/Disconnessione Inaspettata",
     ["dhcp_storm"] = "DHCP Storm",
     ["dhcp_storm_description"] = "Innescare un allarme quando viene rilevato un attacco DHCP Storm",
-    ["dhcp_storm_detected_description"] = "Attacco DHCP Storm rilevato a %{epoch} [DHCP Pacchetti: %{dhcp_num_pkts}]",
     ["disk_space_low"] = "Spazio su disco insufficiente",
     ["disk_space_low_descr"] = "La percentuale massima di utilizzo dello spazio su disco. Quando lo spazio utilizzato sul volume di dati ntopng (o sul volume di registrazione del traffico separato, se configurato) supera questa soglia, viene attivato un avviso",
     ["dns_anomaly"] = "Anomalia DNS",

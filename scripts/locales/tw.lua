@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "MAC 裝置異常連線/斷開",
     ["dhcp_storm"] = "DHCP 風暴",
     ["dhcp_storm_description"] = "當偵測到 DHCP 風暴攻擊時觸發警示",
-    ["dhcp_storm_detected_description"] = "在 %{epoch} 偵測到 DHCP 風暴攻擊 [DHCP 封包：%{dhcp_num_pkts}]",
     ["disk_space_low"] = "磁碟空間不足",
     ["disk_space_low_descr"] = "最大磁碟空間使用百分比。當 ntopng 資料卷（或單獨的流量記錄卷，如果設定）上的已用空間超過此門檻時，將觸發警示",
     ["dns_anomaly"] = "DNS 異常",

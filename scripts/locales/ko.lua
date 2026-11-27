@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "예기치 않은 MAC 연결/디스크.",
     ["dhcp_storm"] = "DHCP 스톰",
     ["dhcp_storm_description"] = "DHCP 폭풍 공격이 감지되면 경고 트리거",
-    ["dhcp_storm_detected_description"] = "%{epoch}에 DHCP 폭풍 공격이 감지되었습니다. [DHCP 패킷: %{dhcp_num_pkts}]",
     ["disk_space_low"] = "디스크 공간 부족",
     ["disk_space_low_descr"] = "최대 디스크 공간 사용량 백분율입니다. ntopng 데이터 볼륨(또는 구성된 경우 별도의 트래픽 기록 볼륨)에서 사용된 공간이 이 임계값을 초과하면 경고가 트리거됩니다.",
     ["dns_anomaly"] = "DNS 이상",

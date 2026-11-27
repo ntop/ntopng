@@ -1747,7 +1747,6 @@ local lang = {
     ["device_connection_disconnection"] = "Unerwartete MAC-Verbindung/Disc.",
     ["dhcp_storm"] = "DHCP-Sturm",
     ["dhcp_storm_description"] = "Bei Erkennung eines DHCP-Storm-Angriffs wird eine Warnung ausgelöst.",
-    ["dhcp_storm_detected_description"] = "DHCP-Storm-Angriff erkannt um %{epoch} [DHCP-Pakete: %{dhcp_num_pkts}]",
     ["disk_space_low"] = "Wenig Speicherplatz",
     ["disk_space_low_descr"] = "Der Prozentsatz der maximalen Speicherplatznutzung. Wenn der belegte Speicherplatz auf dem ntopng-Datenvolumen (oder auf dem separaten Datenverkehrsaufzeichnungsvolumen, sofern konfiguriert) diesen Schwellenwert überschreitet, wird eine Warnung ausgelöst",
     ["dns_anomaly"] = "DNS-Anomalie",
