@@ -13882,7 +13882,7 @@
           "Interfaces"
         ],
         "summary": "Get the autonomous systems of an interface with their traffic",
-        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bytes/s, the GUI shows it in bps; historical: average from the first to the last flow of the AS in the time range), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now).",
+        "description": "Live: the active ASes of the interface (since startup). Historical (is_live=false, needs ClickHouse): the ASes of the flows in [epoch_begin, epoch_end]. rsp is an array of records: asn, asname (none for ASN 0, the private hosts), num_hosts, avg_host_score, score, alerted_flows, seen_since (epoch), bytes_sent, bytes_rcvd, traffic, throughput (bytes/s, the GUI shows it in bps; historical: average from the first to the last flow of the AS in the time range), breakdown {bytes_sent, bytes_rcvd}, breakdown_role {bytes_other, bytes_transit, bytes_peering, bytes_ix}, is_customer_asn / is_sub_customer_asn / is_remote_asn (ASN configuration), is_in_memory (historical only: the AS has active hosts now). Optional paging (start, length, sort, order, map_search): only the records of the page, recordsTotal (top level) = the records matching map_search; without length every record.",
         "operationId": "get_as_data",
         "produces": [
           "application/json"
@@ -13928,6 +13928,41 @@
             "name": "interface_role",
             "in": "query",
             "description": "Enterprise M: all (default), ix, peering or transit (SNMP interface role)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Paging: index of the first record (default 0)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description": "Paging: number of records (default: every record)",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Paging: as_number, name, score, throughput or traffic (default); live also num_hosts and alerted_flows",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Paging: asc or desc (default)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description": "Paging: text matched (case insensitive) on the ASN number and name",
             "required": false,
             "type": "string"
           }

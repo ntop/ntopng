@@ -13,8 +13,6 @@ require "check_redis_prefs"
 --- Maximum number of top ASNs to return in getTop functions
 local MAXIMUM_NUMBER_OF_TOP = 10
 
-local ASN_PROFILING_KEY = "ntopng.profiling.asn"
-
 local INTERFACE_ROLE_OTHER = 0
 local INTERFACE_ROLE_TRANSIT = 1
 local INTERFACE_ROLE_PEERING = 2
@@ -23,6 +21,21 @@ local INTERFACE_ROLE_INTERNET_EXCHANGE = 4
 
 --- Interface roles that can be used to filter the AS traffic
 local INTERFACE_ROLE_VALUES = { "transit", "peering", "ix" }
+
+--- Columns the historical AS rows can be sorted by: column id of the GUI table (as_stats.json) or
+--- field of the row -> SQL column. Names: case insensitive, the ASes missing in asn_info (no name
+--- in the query) last
+local HISTORICAL_SORT_COLUMNS = {
+    as_number = "asn", asn = "asn",
+    name = "asname = '', lowerUTF8(asname)", asname = "asname = '', lowerUTF8(asname)",
+    score = "score", throughput = "throughput_bps", traffic = "traffic",
+}
+
+--- Numeric fields of the historical AS rows (ClickHouse answers strings)
+local HISTORICAL_NUMERIC_FIELDS = {
+    "seen.first", "seen.last", "score", "traffic", "bytes.sent", "bytes.rcvd",
+    "bytes_other", "bytes_transit", "bytes_peering", "bytes_ix", "throughput_bps",
+}
 
 --- Redis keys of the ASN roles, also read by C++ (see ntop_defines.h, Prefs::reloadASNConfiguration)
 local CUSTOMER_ASN_KEY = "ntopng.prefs.config_customer_asn_list"
@@ -132,76 +145,43 @@ local function formatHistoricalFlowsWhere(options)
 end
 
 ---
--- Aggregates raw query rows (grouped by asn, INTERFACE_ROLE) into a single entry per ASN.
--- @param historical_asn_stats Table of rows as returned by the ClickHouse query
--- @return table ASN statistics keyed by ASN number (string)
+-- Keeps only the characters of the AS names and numbers (UTF-8 included) of a search: nothing that
+-- needs to be escaped in the SQL
+-- @param search The text typed in the search box of the table
+-- @return string The text to search
+function as_utils.cleanASSearch(search)
+    return ((search or ""):gsub("[^%w%s%.%-_,&()/\128-\255]", ""))
+end
 
-local function aggregateHistoricalASNRows(historical_asn_stats)
-    local asn_stats = {}
-    for _, as_info in pairs(historical_asn_stats) do
-        local asn = tostring(as_info["asn"])
-        local role = tonumber(as_info["INTERFACE_ROLE"])
-        local b_sent = tonumber(as_info["bytes.sent"]) or 0
-        local b_rcvd = tonumber(as_info["bytes.rcvd"]) or 0
-        local traffic = tonumber(as_info["traffic"]) or 0
-        local score = tonumber(as_info["score"]) or 0
-        local first = tonumber(as_info["seen.first"]) or 0
-        local last = tonumber(as_info["seen.last"]) or 0
-
-        if not asn_stats[asn] then            
-            asn_stats[tostring(asn)] = as_info
-            asn_stats[asn] = {
-                asn = as_info["asn"],
-                asname = as_info["asname"],
-                ["bytes.sent"] = b_sent,
-                ["bytes.rcvd"] = b_rcvd,
-                traffic = traffic,
-                score = score,
-                ["seen.first"] = first,
-                ["seen.last"] = last,
-                -- Per-role breakdown (roles outside 0/1/2 contribute to totals only)
-                bytes_other = 0, 
-                bytes_transit = 0, 
-                bytes_peering = 0,
-		bytes_ix = 0,
-            }
-        else
-            -- Subsequent row for same ASN: aggregate into the existing entry.
-            local existing = asn_stats[asn]
-
-            existing["bytes.sent"] = existing["bytes.sent"] + b_sent
-            existing["bytes.rcvd"] = existing["bytes.rcvd"] + b_rcvd
-            existing["traffic"] = existing["traffic"] + traffic
-            existing["score"] = existing["score"] + score
-
-            -- Keep the widest possible time window
-            if first < existing["seen.first"] then 
-                existing["seen.first"] = first
-            end
-            if last > existing["seen.last"] then 
-                existing["seen.last"]  = last  
-            end
-        end
-
-        -- Accumulate per-role byte counters (roles 0, 1, 2 only;
-        -- other roles are already reflected in the totals above)
-        local existing = asn_stats[asn]
-        if role == INTERFACE_ROLE_OTHER then
-            existing.bytes_other = existing.bytes_other + b_sent + b_rcvd
-        elseif role == INTERFACE_ROLE_TRANSIT then
-            existing.bytes_transit = existing.bytes_transit + b_sent + b_rcvd
-        elseif role == INTERFACE_ROLE_PEERING then
-            existing.bytes_peering = existing.bytes_peering + b_sent + b_rcvd
-        elseif role == INTERFACE_ROLE_INTERNET_EXCHANGE then
-            existing.bytes_ix = existing.bytes_ix + b_sent + b_rcvd
-        end
-
-        -- Average throughput (bytes/s like the live throughput_bps) while the AS was seen in the range:
-        -- the time without traffic before and after it does not lower it
-        existing.throughput_bps = existing.traffic / (existing["seen.last"] - existing["seen.first"] + 1)
+---
+-- SQL of the historical AS statistics: one row per ASN, with the bytes of each interface role.
+-- A flow counts for its source and for its destination AS (once if they are the same):
+-- ARRAY JOIN gets both from a single read of the table, a UNION would read it twice
+-- @param options Table containing epoch_begin, epoch_end, ifid, selected_asn and interface_role
+-- @return string The query
+local function historicalASNStatsSQL(options)
+    local asn_filters = formatHistoricalASNFilters(options)
+    local where = formatHistoricalFlowsWhere(options)
+    -- Same as Flow::getMainRole(): the input role if meaningful, otherwise the output one
+    local interface_role = string.format(
+        "if(INPUT_INTERFACE_ROLE IN (%u, %u, %u), INPUT_INTERFACE_ROLE, OUTPUT_INTERFACE_ROLE)",
+        INTERFACE_ROLE_TRANSIT, INTERFACE_ROLE_PEERING, INTERFACE_ROLE_INTERNET_EXCHANGE)
+    local function role_bytes(role, name)
+        return string.format("sumIf(SRC2DST_BYTES + DST2SRC_BYTES, INTERFACE_ROLE = %u) AS %s", role, name)
     end
-    
-    return asn_stats
+
+    return string.format(
+        "SELECT asn, toUnixTimestamp(min(FIRST_SEEN)) AS \"seen.first\", toUnixTimestamp(max(LAST_SEEN)) AS \"seen.last\", " ..
+            "sum(SCORE) AS score, sum(TOTAL_BYTES) AS traffic, " ..
+            "sum(if(asn = SRC_ASN, SRC2DST_BYTES, DST2SRC_BYTES)) AS \"bytes.sent\", " ..
+            "sum(if(asn = SRC_ASN, DST2SRC_BYTES, SRC2DST_BYTES)) AS \"bytes.rcvd\", %s, %s, %s, %s, " ..
+            -- Average throughput (bytes/s like the live throughput_bps) while the AS was seen in the range
+            "traffic / (\"seen.last\" - \"seen.first\" + 1) AS throughput_bps " ..
+            "FROM (SELECT SRC_ASN, DST_ASN, %s AS INTERFACE_ROLE, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, FIRST_SEEN, LAST_SEEN, SCORE " ..
+            "FROM flows WHERE %s) ARRAY JOIN arrayDistinct([SRC_ASN, DST_ASN]) AS asn %s GROUP BY asn",
+        role_bytes(INTERFACE_ROLE_OTHER, "bytes_other"), role_bytes(INTERFACE_ROLE_TRANSIT, "bytes_transit"),
+        role_bytes(INTERFACE_ROLE_PEERING, "bytes_peering"), role_bytes(INTERFACE_ROLE_INTERNET_EXCHANGE, "bytes_ix"),
+        interface_role, where, ternary(isEmptyString(asn_filters), "", "WHERE " .. asn_filters))
 end
 
 ---
@@ -261,10 +241,6 @@ function as_utils.formatFilters(options, add_to_existing_options)
     end
 
     return filters
-end
-
-function as_utils.getProfilingKey()
-    return ASN_PROFILING_KEY
 end
 
 ---
@@ -423,38 +399,11 @@ end
 -- @param options Table containing filtering options (selected_asn)
 -- @return table ASN statistics keyed by ASN number
 function as_utils.retrieveASLiveTraffic(options)
-    local perform_profiling = ntop.getCache(ASN_PROFILING_KEY)
-
-    if not isEmptyString(perform_profiling) then
-        perform_profiling = true
-    else
-        perform_profiling = false
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start data retrieval (Live)\n", os.time()))
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start request to DB (Live)\n", os.time()))
-    end
     -- Before getting the data, format the paginator, to filter flows
     local filter_options = as_utils.formatFilters(options)
 
     -- Get live ASN statistics from interface
     local live_asn_info = interface.getLiveASNStats(filter_options) or {}
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End request to DB (Live)\n", os.time()))
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start data formatting (Live)\n", os.time()))
-    end
 
     local live_src_asn = live_asn_info["src_asn"]
     local live_dst_asn = live_asn_info["dst_asn"]
@@ -479,7 +428,7 @@ function as_utils.retrieveASLiveTraffic(options)
                 as_info["bytes_transit"] = b_transit
                 as_info["bytes_peering"] = b_peering
 		as_info["bytes_ix"] = b_ix
-                as_info["bytes_other"] = b_total - b_transit - b_peering
+                as_info["bytes_other"] = b_total - b_transit - b_peering - b_ix
                 asn_stats[asn] = as_info
             end
         else
@@ -556,115 +505,59 @@ function as_utils.retrieveASLiveTraffic(options)
         end
     end
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End data formatting (Live)\n", os.time()))
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End data retrieval (Live)\n", os.time()))
-    end
-
     return asn_stats
 end
 
 ---
--- Retrieves historical ASN traffic statistics from ClickHouse database
--- @param options Table containing filtering options (epoch_begin, epoch_end, ifid, selected_asn)
--- @return table Historical ASN statistics keyed by ASN number
-function as_utils.retrieveASHistoricalTraffic(options)
-    -- Check if ClickHouse support is available
+-- Retrieves a page of the historical AS statistics from ClickHouse: the rows are aggregated,
+-- named (asn_info), searched, sorted and paged by the database, only the page comes back
+-- @param options Table containing filtering options (epoch_begin, epoch_end, ifid, selected_asn, interface_role)
+-- @param page Table { sort = column id (HISTORICAL_SORT_COLUMNS), order = "asc"|"desc", start, length
+--             (no length: every row), search = text matched on the ASN number and name }
+-- @return table Array of the rows of the page
+-- @return number Rows matching the search (all the pages)
+function as_utils.retrieveASHistoricalPage(options, page)
     if not hasClickHouseSupport() then
-        return {}
-    end
-    local perform_profiling = ntop.getCache(ASN_PROFILING_KEY)
-
-    if not isEmptyString(perform_profiling) then
-        perform_profiling = true
-    else
-        perform_profiling = false
+        return {}, 0
     end
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start data retrieval (Historical)\n", os.time()))
+    local sort_column = HISTORICAL_SORT_COLUMNS[page.sort] or "traffic"
+    local order = ternary(page.order == "asc", "ASC", "DESC")
+    local search = as_utils.cleanASSearch(page.search)
+    local search_where = ""
+
+    if not isEmptyString(search) then
+        -- ASN 0 (private hosts) has no name: the label the table shows for it
+        local private_hosts = string.find(string.lower(i18n("as_stats.private_hosts") or ""), string.lower(search), 1, true)
+
+        search_where = string.format(
+            "WHERE position(toString(asn), '%s') > 0 OR positionCaseInsensitiveUTF8(asname, '%s') > 0%s",
+            search, search, ternary(private_hosts, " OR asn = 0", ""))
     end
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start request to DB (Historical)\n", os.time()))
+    local limit = ""
+
+    if tonumber(page.length) then
+        limit = string.format(" LIMIT %u OFFSET %u", tonumber(page.length), tonumber(page.start) or 0)
     end
 
-    local asn_filters = formatHistoricalASNFilters(options)
-    local where = formatHistoricalFlowsWhere(options)
-
-    -- Same as Flow::getMainRole(): the input role if meaningful, otherwise the output one
-    local interface_role = string.format(
-        "if(INPUT_INTERFACE_ROLE IN (%u, %u, %u), INPUT_INTERFACE_ROLE, OUTPUT_INTERFACE_ROLE) AS INTERFACE_ROLE",
-        INTERFACE_ROLE_TRANSIT, INTERFACE_ROLE_PEERING, INTERFACE_ROLE_INTERNET_EXCHANGE)
-    -- A flow counts for its source and for its destination AS (once if they are the same):
-    -- ARRAY JOIN gets both from a single read of the table, a UNION would read it twice
     local query = string.format(
-        "SELECT asn, INTERFACE_ROLE, min(FIRST_SEEN) AS \"seen.first\", max(LAST_SEEN) AS \"seen.last\", sum(SCORE) AS score, sum(TOTAL_BYTES) AS traffic, " ..
-            "sum(if(asn = SRC_ASN, SRC2DST_BYTES, DST2SRC_BYTES)) AS \"bytes.sent\", sum(if(asn = SRC_ASN, DST2SRC_BYTES, SRC2DST_BYTES)) AS \"bytes.rcvd\" " ..
-            "FROM (SELECT SRC_ASN, DST_ASN, %s, TOTAL_BYTES, SRC2DST_BYTES, DST2SRC_BYTES, FIRST_SEEN, LAST_SEEN, SCORE FROM flows WHERE %s) " ..
-            "ARRAY JOIN arrayDistinct([SRC_ASN, DST_ASN]) AS asn %s GROUP BY asn, INTERFACE_ROLE",
-        interface_role, where, ternary(isEmptyString(asn_filters), "", "WHERE " .. asn_filters))
+        "SELECT stats.*, names.asname AS asname, count() OVER () AS total_rows FROM (%s) AS stats " ..
+            "LEFT JOIN (SELECT asn, if(description != '', description, handle) AS asname FROM asn_info) AS names USING (asn) " ..
+            "%s ORDER BY %s %s, asn ASC%s",
+        historicalASNStatsSQL(options), search_where, sort_column, order, limit)
 
-        local historical_asn_stats,err = interface.execSQLQuery(query)
-    historical_asn_stats = historical_asn_stats or {}
-    
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End request to DB (Historical)\n", os.time()))
-    end
+    local rows = interface.execSQLQuery(query) or {}
+    local total = tonumber(rows[1] and rows[1]["total_rows"]) or 0
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start data formatting (Historical)\n", os.time()))
-    end
-
-    -- Process historical data.
-    -- The query groups by (asn, INTERFACE_ROLE), so the same ASN can appear in multiple
-    -- rows. We aggregate all rows into a single entry per ASN, and additionally track
-    -- bytes for the three roles of interest (other/transit/peering).
-    local asn_stats = aggregateHistoricalASNRows(historical_asn_stats)
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End data formatting (Historical)\n", os.time()))
-    end
-
-    -- For recent time periods, merge live data with historical data
-    -- This ensures complete statistics for the requested time range
-
-    -- Merge live and historical data
-    --[[ For now do not unify live and historical data
-    local live_info = as_utils.retrieveASLiveTraffic(options) or {}
-    for asn, as_info in pairs(live_info) do
-        if not asn_stats[asn] then
-            -- New ASN: add live data
-            asn_stats[asn] = as_info
-        else
-            -- Existing ASN: aggregate statistics
-            asn_stats[asn]["bytes.sent"] = asn_stats[asn]["bytes.sent"] + as_info["bytes.sent"]
-            asn_stats[asn]["bytes.rcvd"] = asn_stats[asn]["bytes.rcvd"] + as_info["bytes.rcvd"]
-            asn_stats[asn]["traffic"] = asn_stats[asn]["traffic"] + as_info["traffic"]
-            asn_stats[asn]["score"] = asn_stats[asn]["score"] + as_info["score"]
-            
-            -- Calculate weighted average for throughput
-            local time_diff = asn_stats[asn]["seen.last"] - asn_stats[asn]["seen.first"]
-            asn_stats[asn]["throughput_bps"] = ((asn_stats[asn]["throughput_bps"] * time_diff) +
-                                                   as_info["throughput_bps"]) / (time_diff + 1)
-
-            -- Update first seen timestamp if necessary
-            if tonumber(asn_stats[asn]["seen.first"]) < as_info["seen.first"] then
-                asn_stats[asn]["seen.first"] = as_info["seen.first"]
-            end
+    for _, row in ipairs(rows) do
+        for _, field in ipairs(HISTORICAL_NUMERIC_FIELDS) do
+            row[field] = tonumber(row[field]) or 0
         end
-    end]]
+        row["total_rows"] = nil
+    end
 
-    return asn_stats
+    return rows, total
 end
 
 ---
@@ -674,18 +567,6 @@ end
 function as_utils.getTopASLive(options)
     local counter = 0
     local asn_tops = {}
-    local perform_profiling = ntop.getCache(ASN_PROFILING_KEY)
-
-    if not isEmptyString(perform_profiling) then
-        perform_profiling = true
-    else
-        perform_profiling = false
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start Top ASN (Live)\n", os.time()))
-    end
 
     local live_info = as_utils.retrieveASLiveTraffic(options) or {}
 
@@ -698,11 +579,6 @@ function as_utils.getTopASLive(options)
         end
     end
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End Top ASN (Live)\n", os.time()))
-    end
-
     return asn_tops
 end
 
@@ -712,35 +588,15 @@ end
 -- @return table Array of top ASN statistics, sorted by traffic
 function as_utils.getTopASHistorical(options)
     local format_utils = require "format_utils"
-    local counter = 0
     local asn_tops = {}
-    local perform_profiling = ntop.getCache(ASN_PROFILING_KEY)
 
-    if not isEmptyString(perform_profiling) then
-        perform_profiling = true
-    else
-        perform_profiling = false
-    end
+    -- The top N by traffic, sorted by ClickHouse
+    local historical_info = as_utils.retrieveASHistoricalPage(options,
+        { sort = "traffic", order = "desc", start = 0, length = MAXIMUM_NUMBER_OF_TOP })
 
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] Start Top ASN (Historical)\n", os.time()))
-    end
-    local historical_info = as_utils.retrieveASHistoricalTraffic(options) or {}
-
-    -- Sort by traffic (descending) and take top N
-    for _, as_info in pairsByField(historical_info, 'traffic', rev) do
-        counter = counter + 1
+    for _, as_info in ipairs(historical_info) do
         as_info["asname"] = format_utils.formatASN(as_info["asn"], true, false)
         asn_tops[#asn_tops + 1] = as_info
-        if (counter >= MAXIMUM_NUMBER_OF_TOP) then
-            break
-        end
-    end
-
-    if (perform_profiling) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-            string.format("[ASN Profiling][Time: %s] End Top ASN (Historical)\n", os.time()))
     end
 
     return asn_tops
