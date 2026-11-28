@@ -1916,14 +1916,18 @@ static u_int32_t getData32_nobswap(SFSample *sample) {
   u_int32_t *ans = (u_int32_t*)sample->datap;
   u_int32_t val;
 
+  // make sure we don't run off the end of the datagram.  Thanks to
+  // Sven Eschenberg for spotting a bug/overrun-vulnerabilty that was here before.
+  if((u_char *)sample->datap > sample->endp
+     || (sample->endp - (u_char *)sample->datap) < 4) {
+    sample->datap = sample->endp;
+    SFABORT(sample, SF_ABORT_EOS);
+    return 0;
+  }
+
   memcpy(&val, ans, 4);
 
   sample->datap += 4;
-  // make sure we didn't run off the end of the datagram.  Thanks to
-  // Sven Eschenberg for spotting a bug/overrun-vulnerabilty that was here before.
-  if((u_char *)sample->datap > sample->endp) {
-    SFABORT(sample, SF_ABORT_EOS);
-  }
   return val;
 }
 
@@ -1947,16 +1951,21 @@ static u_int64_t getData64(SFSample *sample) {
 
 /* Function modified by Luca */
 static void skipBytes(SFSample *sample, u_int32_t skip) {
+  u_int64_t aligned, remaining;
 
   /* Luca: align to 4 bytes */
-  skip = (skip + 3) & ~3; /* Align */
+  aligned = ((u_int64_t)skip + 3) & ~(u_int64_t)3; /* Align */
 
   /* ntop->getTrace()->traceEvent(TRACE_WARNING, "===>> skipBytes(%d)", skip); */
 
-  sample->datap += skip;
-  if(skip > sample->rawSampleLen || (u_char *)sample->datap > sample->endp) {
+  remaining = ((u_char *)sample->datap < sample->endp)
+    ? (u_int64_t)(sample->endp - (u_char *)sample->datap) : 0;
+
+  if(aligned > remaining) {
+    sample->datap = sample->endp;
     SFABORT(sample, SF_ABORT_EOS);
-  }
+  } else
+    sample->datap += aligned;
 }
 
 void sf_log(const char *fmt, ...)
@@ -1997,12 +2006,20 @@ static float sf_log_nextFloat(SFSample *sample, const char *fieldName) {
   return val;
 }
 
+static u_int32_t getBytes(SFSample *sample, u_char *buf, u_int32_t len) {
+  u_int32_t remaining = ((u_char *)sample->datap < sample->endp)
+                          ? (u_int32_t)(sample->endp - (u_char *)sample->datap) : 0;
+  if(len > remaining) len = remaining;
+  memcpy(buf, sample->datap, len);
+  return len;
+}
+
 static u_int32_t getString(SFSample *sample, char *buf, u_int32_t bufLen) {
   u_int32_t len, read_len;
   len = getData32(sample);
   // truncate if too long
   read_len = (len >= bufLen) ? (bufLen - 1) : len;
-  memcpy(buf, sample->datap, read_len);
+  read_len = getBytes(sample, (u_char *)buf, read_len);
   buf[read_len] = '\0';   // null terminate
   skipBytes(sample, len);
   return len;
@@ -2013,7 +2030,7 @@ static u_int32_t getAddress(SFSample *sample, SFLAddress *address) {
   if(address->type == SFLADDRESSTYPE_IP_V4)
     address->address.ip_v4.addr = getData32_nobswap(sample);
   else {
-    memcpy(&address->address.ip_v6.addr, sample->datap, 16);
+    getBytes(sample, (u_char *)&address->address.ip_v6.addr, 16);
     skipBytes(sample, 16);
   }
   return address->type;
@@ -2214,13 +2231,13 @@ static void readExtendedGateway(SFSample *sample)
 
   if(segments > 0) {
     sf_log("dst_as_path ");
-    for(seg = 0; seg < segments; seg++) {
+    for(seg = 0; seg < segments && (u_char *)sample->datap < sample->endp; seg++) {
       u_int32_t seg_type;
       u_int32_t seg_len;
       u_int32_t i;
       seg_type = getData32(sample);
       seg_len = getData32(sample);
-      for(i = 0; i < seg_len; i++) {
+      for(i = 0; i < seg_len && (u_char *)sample->datap < sample->endp; i++) {
 	u_int32_t asNumber;
 	asNumber = getData32(sample);
 	/* mark the first one as the dst_peer_as */
@@ -2693,9 +2710,9 @@ static void readFlowSample_ethernet(SFSample *sample)
   u_char *p;
   sf_log("flowSampleType ETHERNET\n");
   sample->eth_len = getData32(sample);
-  memcpy(sample->eth_src, sample->datap, 6);
+  getBytes(sample, sample->eth_src, 6);
   skipBytes(sample, 6);
-  memcpy(sample->eth_dst, sample->datap, 6);
+  getBytes(sample, sample->eth_dst, 6);
   skipBytes(sample, 6);
   sample->eth_type = getData32(sample);
   sf_log("ethernet_type %u\n", sample->eth_type);
@@ -2717,6 +2734,11 @@ static void readFlowSample_IPv4(SFSample *sample)
   sf_log("flowSampleType IPV4\n");
   sample->headerLen = sizeof(SFLSampled_ipv4);
   sample->header = (u_char *)sample->datap; /* just point at the header */
+  if((u_char *)sample->datap > sample->endp
+     || (u_int32_t)(sample->endp - (u_char *)sample->datap) < sample->headerLen) {
+    skipBytes(sample, sample->headerLen);
+    return;
+  }
   skipBytes(sample, sample->headerLen);
   {
     char buf[51];
@@ -2773,6 +2795,11 @@ static void readFlowSample_IPv6(SFSample *sample)
   sf_log("flowSampleType IPV6\n");
   sample->header = (u_char *)sample->datap; /* just point at the header */
   sample->headerLen = sizeof(SFLSampled_ipv6);
+  if((u_char *)sample->datap > sample->endp
+     || (u_int32_t)(sample->endp - (u_char *)sample->datap) < sample->headerLen) {
+    skipBytes(sample, sample->headerLen);
+    return;
+  }
   skipBytes(sample, sample->headerLen);
   {
     char buf[51];
@@ -2951,10 +2978,10 @@ static void readExtendedSocket6(SFSample *sample)
   sf_log("extendedType socket6\n");
   sf_log_next32(sample, "socket6_ip_protocol");
   sample->ipsrc.type = SFLADDRESSTYPE_IP_V6;
-  memcpy(&sample->ipsrc.address.ip_v6, sample->datap, 16);
+  getBytes(sample, (u_char *)&sample->ipsrc.address.ip_v6, 16);
   skipBytes(sample, 16);
   sample->ipdst.type = SFLADDRESSTYPE_IP_V6;
-  memcpy(&sample->ipdst.address.ip_v6, sample->datap, 16);
+  getBytes(sample, (u_char *)&sample->ipdst.address.ip_v6, 16);
   skipBytes(sample, 16);
   sf_log("socket6_local_ip %s\n", printAddress(&sample->ipsrc, buf, 50));
   sf_log("socket6_remote_ip %s\n", printAddress(&sample->ipdst, buf, 50));
@@ -3163,7 +3190,7 @@ static int readFlowSample(SFSample *sample, int expanded)
   num_elements = getData32(sample);
   {
     u_int32_t el;
-    for(el = 0; el < num_elements; el++) {
+    for(el = 0; el < num_elements && (u_char *)sample->datap < sample->endp; el++) {
       u_int32_t tag, length;
       u_char *start;
       char buf[51];
@@ -3423,12 +3450,12 @@ static void readCounters_adaptors(SFSample *sample)
 {
   u_char *mac;
   u_int32_t i, j, ifindex, num_macs, num_adaptors = getData32(sample);
-  for(i = 0; i < num_adaptors; i++) {
+  for(i = 0; i < num_adaptors && (u_char *)sample->datap < sample->endp; i++) {
     ifindex = getData32(sample);
     sf_log("adaptor_%u_ifIndex %u\n", i, ifindex);
     num_macs = getData32(sample);
     sf_log("adaptor_%u_MACs %u\n", i, num_macs);
-    for(j = 0; j < num_macs; j++) {
+    for(j = 0; j < num_macs && (u_char *)sample->datap < sample->endp; j++) {
       mac = (u_char *)sample->datap;
       sf_log("adaptor_%u_MAC_%u %02x%02x%02x%02x%02x%02x\n",
 	     i, j,
@@ -3761,7 +3788,7 @@ static void readCountersSample(SFSample *sample, int expanded)
   num_elements = getData32(sample);
   {
     u_int32_t el;
-    for(el = 0; el < num_elements; el++) {
+    for(el = 0; el < num_elements && (u_char *)sample->datap < sample->endp; el++) {
       u_int32_t tag, length;
       u_char *start;
       char buf[51];
