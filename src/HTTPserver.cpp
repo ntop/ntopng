@@ -2050,9 +2050,23 @@ static int handle_lua_request(struct mg_connection* conn) {
 
     if (found) {
       LuaEngine* l;
+      const char* fetch_site = mg_get_header(conn, "Sec-Fetch-Site");
 
       ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] %s [%s]",
                                    request_info->uri, path);
+
+      if (fetch_site && strcmp(fetch_site, "same-origin") &&
+          strcmp(fetch_site, "none") &&
+          strcmp(csrf, NTOP_CSRF_TOKEN_NO_SESSION) &&
+          strstr(request_info->uri, "/rest/") &&
+          !strstr(request_info->uri, "/get/")) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+                                     "[HTTP] Cross-site request to %s rejected",
+                                     request_info->uri);
+        if (original_uri) request_info->uri = original_uri;
+        return (send_error(conn, 403 /* Forbidden */, "Forbidden", "%s",
+                           "Cross-site request"));
+      }
 
       try {
         l = new LuaEngine();
