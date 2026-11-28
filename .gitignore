@@ -4,6 +4,7 @@
 node_modules/
 httpdocs/ai_dashboards
 python/
+!doc/src/api/python/
 confdefs.h
 .code-workspace.code-workspace
 .history/
