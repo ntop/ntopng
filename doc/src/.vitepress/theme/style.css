@@ -16,3 +16,9 @@
   .VPDoc.has-sidebar .container { max-width: 1400px !important; }
   .VPDoc.has-sidebar .content-container { max-width: 1100px !important; }
 }
+
+/* "Get a License" call to action, always visible in the navbar */
+.shop-cta { display: inline-flex; align-items: center; gap: 6px; height: 34px; margin-left: 12px; padding: 0 14px; border-radius: 17px; background: #ff8f00; color: #111 !important; font-size: 14px; font-weight: 600; line-height: 1; text-decoration: none !important; white-space: nowrap; transition: background .2s; }
+.shop-cta:hover { background: #ffa726; }
+.shop-cta-icon { display: inline-flex; }
+@media (max-width: 640px) { .shop-cta { margin-left: 8px; padding: 0 10px; } .shop-cta-text { display: none; } }
