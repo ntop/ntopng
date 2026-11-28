@@ -4,6 +4,7 @@
 node_modules/
 httpdocs/ai_dashboards
 python/
+!doc/src/api/python/
 confdefs.h
 .code-workspace.code-workspace
 .history/
@@ -102,6 +103,8 @@ doc/src/doxygen/xml/
 doc/src/doxygen/DoxygenLayout.xml
 doc/src/doxygen/*.tmp
 logo.png
+!doc/src/public/logo.png
+!doc/nedge/src/public/logo.png
 logo.xcf
 logobase.jpg
 logobase.png
